@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Aviation Indicators Trainer</title>
 <style>
 :root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#10233f;background:#f4f7fb}
@@ -23,7 +23,8 @@ button:hover{background:#e5edf7}.answer.selected{outline:2px solid #1f6feb;backg
 input[type=file]{display:block;margin-top:12px}
 small{color:#66758a}
 .mode{font-weight:650}.muted{color:#66758a}
-/* DESKTOP EDITION */
+/* Desktop / tablet */
+@media (min-width:641px){
 .wrap{max-width:1000px;padding:30px}
 .card{padding:28px}
 .question{font-size:27px}
@@ -31,6 +32,27 @@ small{color:#66758a}
 .answer{min-height:64px}
 .actions{justify-content:flex-start}
 .actions button{min-width:180px}
+}
+/* Mobile */
+@media (max-width:640px){
+body{background:#f4f7fb}
+.wrap{max-width:520px;padding:12px}
+header{align-items:flex-start;gap:10px;margin-bottom:12px}
+h1{font-size:22px;line-height:1.15}.sub{font-size:12px}
+.card{border-radius:16px;padding:16px;margin-bottom:12px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.stat{padding:9px 6px;text-align:center;font-size:11px}
+.question{font-size:21px;line-height:1.3;margin:16px 0}
+.answers{gap:9px}
+.answer{min-height:58px;font-size:16px;padding:14px;border-radius:13px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.actions button{min-height:52px;text-align:center}
+.modebar{display:grid!important;grid-template-columns:repeat(3,1fr);gap:7px!important}
+.modebar button{padding:11px 5px;text-align:center;font-size:12px}
+.progress{margin:12px 0}
+#feedback{min-height:24px;font-weight:700}
+pre{overflow:auto;font-size:11px}
+}
 </style>
 </head>
 <body>
