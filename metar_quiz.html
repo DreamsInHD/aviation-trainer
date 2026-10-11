@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>METAR abbreviations quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E4E9ED; --paper:#FBF8EA; --ink:#1B2631; --muted:#5B6873; --line:#C9D1D7;
+  --holder:#2F4A63; --ok:#2C7A4B; --okbg:#E1F1E6; --bad:#B23A2E; --badbg:#F8E3E0; --focus:#1F6FB2;
+  --WIND:#2F6F9F; --VIS:#6B5BA8; --WX:#3E8C8A; --COMBO:#B1495E; --CLOUD:#7A6A58; --TP:#B07A1E; --REP:#4F6E3A;
+  --sans:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --cond:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#121B23; --paper:#1D2934; --ink:#E6ECF0; --muted:#9AA8B3; --line:#33424F;
+    --holder:#8FB3D1; --ok:#6CC791; --okbg:#1B3527; --bad:#EE8577; --badbg:#3B2220; --focus:#7DB8EA;
+  }
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.5}
+a.back{display:block;max-width:760px;margin:0 auto;padding:12px 18px 0;font:600 14px system-ui,sans-serif;color:var(--holder);text-decoration:none}
+main{max-width:760px;margin:0 auto;padding:16px 18px 60px}
+h1{font-family:var(--cond);font-weight:700;font-size:clamp(2rem,6vw,2.9rem);line-height:1.05;margin:0 0 6px;letter-spacing:.2px}
+h2{font-family:var(--cond);font-weight:600;font-size:1.5rem;margin:22px 0 6px}
+p.lede{color:var(--muted);margin:0 0 20px;max-width:62ch}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+code{font-family:var(--mono);font-size:.93em}
+code.cd{font-size:1.15em;font-weight:700;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:1px 8px}
+
+/* start screen */
+.sect{font-family:var(--cond);font-weight:600;font-size:1.05rem;margin:20px 0 8px;color:var(--muted);letter-spacing:.4px;text-transform:uppercase}
+.types{display:grid;gap:6px;margin:0 0 4px}
+.types label,.opts label{display:flex;gap:10px;align-items:center}
+.types small{color:var(--muted)}
+.picker{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}
+.chip{border:1.5px solid var(--line);background:var(--paper);border-radius:6px;padding:7px 12px;display:flex;gap:8px;align-items:center}
+.chip .sw{width:10px;height:22px;border-radius:2px;background:var(--c)}
+.chip[aria-pressed="false"]{opacity:.45}
+.chip small{font-family:var(--cond);color:var(--muted);font-size:.95rem}
+.opts{display:flex;flex-wrap:wrap;gap:18px;margin:14px 0 22px;color:var(--muted)}
+select{font:inherit;color:var(--ink);background:var(--paper);border:1.5px solid var(--line);border-radius:6px;padding:5px 10px}
+.primary{background:var(--holder);color:var(--paper);border:0;border-radius:6px;padding:12px 22px;font-weight:600;font-size:1.05rem}
+.primary:disabled{opacity:.4;cursor:not-allowed}
+.ghost{background:transparent;border:1.5px solid var(--line);border-radius:6px;padding:10px 18px;font-weight:500}
+.legend{margin-top:26px;color:var(--muted);font-size:.95rem;max-width:62ch}
+.legend b{color:var(--ink);font-weight:600}
+details.ref{margin-top:28px;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:10px 16px}
+details.ref summary,details.full summary{cursor:pointer;font-weight:600}
+details.ref h3{font-family:var(--cond);font-weight:600;font-size:1.25rem;margin:18px 0 4px;padding-left:10px;border-left:6px solid var(--c)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;margin:6px 0 14px;background:var(--paper);border:1px solid var(--line)}
+th,td{padding:6px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-family:var(--cond);font-weight:600;font-size:1.02rem;color:var(--muted)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+table.dec{background:transparent;border:0;margin:8px 0 0}
+table.dec td{padding:4px 8px;border-color:var(--line)}
+table.dec td:first-child{white-space:nowrap}
+
+/* question strip */
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px;font-family:var(--cond);font-size:1.05rem;color:var(--muted)}
+.bar{height:4px;background:var(--line);border-radius:2px;margin-bottom:18px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--holder);transition:width .25s}
+.strip{display:grid;grid-template-columns:14px 1fr;background:var(--paper);border-radius:4px;border:1px solid var(--line);overflow:hidden}
+.strip .bay{background:var(--c)}
+.strip .body{padding:16px 18px 18px}
+.meta{display:grid;grid-template-columns:auto auto 1fr;border-bottom:1px solid var(--line);margin:-16px -18px 14px;font-family:var(--cond);font-size:1rem}
+.meta span{padding:6px 12px;border-right:1px solid var(--line);white-space:nowrap}
+.meta span:last-child{border-right:0;color:var(--muted);text-align:right}
+.qtext{font-size:1.12rem;font-weight:500;margin:0 0 6px}
+.hint{color:var(--muted);font-size:.95rem;margin:0 0 12px}
+pre.metar{font-family:var(--mono);font-size:1rem;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:12px 14px;margin:8px 0 14px;white-space:pre-wrap;word-break:break-word;line-height:1.9}
+pre.metar mark{background:var(--holder);color:var(--paper);padding:3px 7px;border-radius:4px}
+.choices{display:grid;gap:8px;margin:12px 0 0;padding:0;list-style:none}
+.choice{width:100%;text-align:left;display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start;background:transparent;border:1.5px solid var(--line);border-radius:5px;padding:10px 12px}
+.choice .box{width:20px;height:20px;margin-top:2px;border:2px solid var(--muted);border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700}
+.choice[aria-checked="true"]{border-color:var(--holder)}
+.choice[aria-checked="true"] .box{background:var(--holder);border-color:var(--holder);color:var(--paper)}
+.choice.correct{border-color:var(--ok);background:var(--okbg)}
+.choice.wrong{border-color:var(--bad);background:var(--badbg)}
+.choice.correct .box{border-color:var(--ok)}
+.choice:disabled{cursor:default;color:inherit}
+.fb{margin-top:16px;padding:12px 14px;border-radius:5px;border-left:4px solid var(--c2);background:var(--bg)}
+.fb strong{display:block;margin-bottom:2px}
+.fb details{margin-top:8px}
+.actions{display:flex;justify-content:space-between;gap:10px;margin-top:18px;flex-wrap:wrap}
+
+/* results */
+.score{font-family:var(--cond);font-weight:700;font-size:clamp(3rem,12vw,5rem);line-height:1;margin:6px 0 2px}
+.miss{background:var(--paper);border:1px solid var(--line);border-left:6px solid var(--c);border-radius:4px;padding:12px 14px;margin-bottom:10px}
+.miss p{margin:4px 0}
+.miss .ans{color:var(--ok);font-weight:500}
+.miss .ref{font-family:var(--cond);color:var(--muted)}
+@media (max-width:520px){.meta{grid-template-columns:auto 1fr}.meta span:last-child{display:none}.meta span:nth-child(2){border-right:0}}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<a class="back" href="./">← Menu</a>
+<main id="app"></main>
+<script>
+const CATS={WIND:"Wind",VIS:"Visibility & RVR",WX:"Weather phenomena",COMBO:"Weather combinations",CLOUD:"Cloud",TP:"Temperature & pressure",REP:"Report & trend"};
+const TYPES={dec:"Abbreviation → meaning",enc:"Meaning → abbreviation",metar:"Decode a METAR",rule:"Rules & numbers"};
+const TYPE_DESC={dec:"see a code, pick its meaning",enc:"see a meaning, pick its code",metar:"a fresh random METAR each time, decode one group of it",rule:"how groups are formed and when they are used"};
+const METAR_N=30;
+
+// [category, code, meaning, example, note, standalone present-weather group]
+const RAW=[
+["WIND","VRB","Variable wind direction","VRB02KT","Used for light winds, or when no single direction can be determined (for example under a thunderstorm)."],
+["WIND","G","Gust (maximum wind speed)","24015G28KT","Added when the maximum speed exceeds the mean speed by 10 kt or more. 24015G28KT = wind from 240° at 15 kt, gusting 28 kt."],
+["WIND","KT","Knots (unit of wind speed)","24015KT","Wind group = direction in 3 digits, speed in 2 digits, unit. In a METAR the direction is in degrees true (local reports to ATC use magnetic)."],
+["WIND","MPS","Metres per second (unit of wind speed)","24008MPS","Some States report wind in m/s instead of knots; 1 m/s is roughly 2 kt."],
+["WIND","00000KT","Calm wind","00000KT","Direction and speed are both reported as zero."],
+["WIND","WS","Wind shear on the take-off or landing path","WS R24","WS R24 = wind shear on runway 24; WS ALL RWY = on all runways."],
+
+["VIS","9999","Visibility 10 km or more","9999","Visibility is given in metres. 9999 does not mean exactly 9999 m but 10 km or more."],
+["VIS","0000","Visibility less than 50 m","0000","The lowest visibility value that can be reported."],
+["VIS","NDV","No directional variation in visibility","9999 NDV","Used when the system cannot determine directional variations of visibility (typically automated reports)."],
+["VIS","R","Runway visual range (RVR) group","R25L/0600N","R + runway designator / RVR in metres + optional trend letter."],
+["VIS","P2000","RVR above the maximum reportable value (more than 2000 m)","R25L/P2000","P = plus: the RVR is higher than the highest value the system reports."],
+["VIS","M0050","RVR below the minimum reportable value (less than 50 m)","R25L/M0050","M = minus: the RVR is lower than the lowest value the system reports."],
+["VIS","U","RVR trend: upward (improving)","R25L/0600U","Compared with the previous 10 minutes."],
+["VIS","D","RVR trend: downward (deteriorating)","R25L/0600D","Compared with the previous 10 minutes."],
+["VIS","N","RVR trend: no distinct change","R25L/0600N","Compared with the previous 10 minutes."],
+
+["WX","MI","Shallow","MIFG","Descriptor. MIFG = shallow fog, less than 2 m deep.",0],
+["WX","BC","Patches","BCFG","Descriptor. BCFG = fog patches.",0],
+["WX","PR","Partial","PRFG","Descriptor. PRFG = a fog bank covers part of the aerodrome while the rest is clear.",0],
+["WX","DR","Low drifting","DRSN","Descriptor. Raised by the wind to less than 2 m above the ground.",0],
+["WX","BL","Blowing","BLSN","Descriptor. Raised by the wind to 2 m or more above the ground.",0],
+["WX","SH","Shower(s)","SHRA","Descriptor. Precipitation from convective cloud, starting and stopping suddenly.",0],
+["WX","TS","Thunderstorm","TSRA","On its own: thunderstorm without precipitation. With a precipitation code: TSRA, TSGR, TSSN.",1],
+["WX","FZ","Freezing (supercooled)","FZRA","Descriptor used with fog, drizzle and rain; supercooled droplets freeze on contact.",0],
+["WX","DZ","Drizzle","-DZ","Very small, numerous droplets.",1],
+["WX","RA","Rain","RA","Moderate rain unless preceded by − (light) or + (heavy).",1],
+["WX","SN","Snow","SN","",1],
+["WX","SG","Snow grains","SG","",1],
+["WX","PL","Ice pellets","PL","",1],
+["WX","GR","Hail","GR","Hailstones with a diameter of 5 mm or more.",1],
+["WX","GS","Small hail and/or snow pellets","GS","Diameter less than 5 mm.",1],
+["WX","UP","Unidentified precipitation","UP","Reported only by automated stations.",0],
+["WX","BR","Mist","BR","Visibility from 1000 m up to 5000 m.",1],
+["WX","FG","Fog","FG","Visibility below 1000 m.",1],
+["WX","FU","Smoke","FU","",1],
+["WX","VA","Volcanic ash","VA","",0],
+["WX","DU","Widespread dust","DU","",0],
+["WX","SA","Sand","SA","",0],
+["WX","HZ","Haze","HZ","",1],
+["WX","PO","Well-developed dust or sand whirls","PO","",0],
+["WX","SQ","Squalls","SQ","",1],
+["WX","FC","Funnel cloud(s)","FC","+FC = tornado or waterspout.",0],
+["WX","SS","Sandstorm","SS","",0],
+["WX","DS","Duststorm","DS","",0],
+["WX","VC","In the vicinity (about 8–16 km from the aerodrome reference point)","VCSH","Not at the aerodrome itself.",0],
+["WX","RE","Recent weather (observed since the last report, not at the time of observation)","RERA","",0],
+["WX","NSW","Nil significant weather","NSW","Used in trend forecasts to show that significant weather ends.",0],
+
+["COMBO","-RA","Light rain","","Intensity: − light, no sign moderate, + heavy.",1],
+["COMBO","+RA","Heavy rain","","",1],
+["COMBO","-DZ","Light drizzle","","",1],
+["COMBO","-SN","Light snow","","",1],
+["COMBO","+SN","Heavy snow","","",1],
+["COMBO","-SHRA","Light rain shower(s)","","",1],
+["COMBO","SHRA","Moderate rain shower(s)","","",1],
+["COMBO","+SHRA","Heavy rain shower(s)","","",1],
+["COMBO","SHSN","Snow shower(s)","","",1],
+["COMBO","SHGR","Hail shower(s)","","",1],
+["COMBO","RASN","Rain and snow mixed","","",1],
+["COMBO","TSRA","Thunderstorm with moderate rain","","",1],
+["COMBO","+TSRA","Thunderstorm with heavy rain","","",1],
+["COMBO","TSGR","Thunderstorm with hail","","",1],
+["COMBO","TSSN","Thunderstorm with snow","","",1],
+["COMBO","VCTS","Thunderstorm in the vicinity","","VC = about 8–16 km from the aerodrome reference point.",1],
+["COMBO","VCSH","Shower(s) in the vicinity","","",1],
+["COMBO","FZRA","Freezing rain","","Dangerous for aircraft: ice builds up quickly on contact.",1],
+["COMBO","FZDZ","Freezing drizzle","","",1],
+["COMBO","FZFG","Freezing fog","","Fog of supercooled droplets, normally with a temperature below 0 °C.",1],
+["COMBO","MIFG","Shallow fog","","Fog less than 2 m deep.",1],
+["COMBO","BCFG","Fog patches","","",1],
+["COMBO","PRFG","Partial fog (bank covering part of the aerodrome)","","",1],
+["COMBO","BLSN","Blowing snow","","Raised by the wind to 2 m or more above the ground.",1],
+["COMBO","DRSN","Low drifting snow","","Raised by the wind to less than 2 m above the ground.",1],
+["COMBO","BLDU","Blowing dust","","",1],
+["COMBO","BLSA","Blowing sand","","",1],
+["COMBO","+FC","Tornado or waterspout","","FC = funnel cloud; with + it is a tornado or waterspout.",0],
+["COMBO","RERA","Recent rain","","RE = recent weather, no longer present at the time of observation.",0],
+["COMBO","RETS","Recent thunderstorm","","",0],
+
+["CLOUD","FEW","Few: 1–2 oktas of cloud","FEW025","FEW025 = few clouds with the base at 2500 ft."],
+["CLOUD","SCT","Scattered: 3–4 oktas of cloud","SCT025","SCT does not count as a ceiling."],
+["CLOUD","BKN","Broken: 5–7 oktas of cloud","BKN015","BKN and OVC layers form the ceiling."],
+["CLOUD","OVC","Overcast: 8 oktas of cloud","OVC008","The sky is completely covered."],
+["CLOUD","NSC","No significant cloud","NSC","No cloud below 5000 ft (or the highest minimum sector altitude, if greater), no CB or TCU, and CAVOK not applicable."],
+["CLOUD","NCD","No cloud detected","NCD","Used in automated reports when the sensor detects no cloud."],
+["CLOUD","SKC","Sky clear","SKC","No cloud at all (0 oktas)."],
+["CLOUD","CB","Cumulonimbus","BKN015CB","Added to the cloud group. Only CB and TCU are ever added."],
+["CLOUD","TCU","Towering cumulus","SCT020TCU","Added to the cloud group."],
+["CLOUD","VV","Vertical visibility (sky obscured)","VV002","VV002 = vertical visibility 200 ft. Used when the sky is obscured, for example in fog or heavy snow."],
+["CLOUD","CAVOK","Ceiling and visibility OK","CAVOK","Replaces visibility, weather and cloud: visibility 10 km or more, no cloud below 5000 ft (or the highest MSA, if greater), no CB or TCU, and no significant weather."],
+
+["TP","Q","QNH in hectopascals","Q1013","Q1013 = QNH 1013 hPa."],
+["TP","A","Altimeter setting in inches of mercury","A2992","A2992 = 29.92 inHg, about 1013 hPa. Used for example in the USA."],
+["TP","M","Minus: temperature or dew point below zero","M02/M04","M02/M04 = temperature −2 °C, dew point −4 °C."],
+["TP","12/08","Air temperature 12 °C, dew point 8 °C","12/08","Temperature first, then dew point, in whole degrees Celsius."],
+
+["REP","METAR","Routine aerodrome weather report","METAR EBBR 111250Z ...","Issued at fixed intervals, normally every 30 or 60 minutes."],
+["REP","SPECI","Special aerodrome weather report","SPECI EBBR 111310Z ...","Issued between routine reports when specified significant changes occur."],
+["REP","COR","Correction to a report already issued","METAR COR EBBR ...",""],
+["REP","AUTO","Fully automated report (no human observer)","111250Z AUTO",""],
+["REP","NIL","Missing report (no observation available)","METAR EBBR 111250Z NIL",""],
+["REP","Z","UTC (Zulu) time in the observation time group","111250Z","111250Z = day 11, 12:50 UTC."],
+["REP","RMK","Remarks","RMK","Not part of the international METAR format; some States add national remarks after it."],
+["REP","NOSIG","No significant change expected in the next 2 hours","NOSIG","A trend forecast is valid for 2 hours from the time of the observation."],
+["REP","BECMG","Becoming: a change is expected to take place","BECMG 9999 NSW","Conditions change permanently, at a regular or irregular rate."],
+["REP","TEMPO","Temporary fluctuations","TEMPO 3000 -SHRA","Fluctuations of less than 1 hour each time, and covering less than half of the period in total."],
+["REP","FM","From (a time)","BECMG FM1400","Marks the start of a change; the time follows in hours and minutes."],
+["REP","TL","Until (a time)","BECMG TL1500","Marks the end of a change period."],
+["REP","AT","At (a time)","BECMG AT1400","The change happens at the given time."],
+["REP","SNOCLO","Aerodrome closed due to snow","R/SNOCLO","Used when the aerodrome is closed because of an extreme deposit of snow on the movement area."]
+];
+const E=RAW.map(([cat,code,mean,ex,note,g])=>({cat,code,mean,ex:ex||"",note:note||"",g:!!g}));
+const EC=Object.fromEntries(E.map(e=>[e.code,e]));
+
+// [category, question, correct answer, three wrong answers, explanation]
+const RULES=[
+["WIND","When is a gust group (G) added to the wind in a METAR?","When the maximum speed exceeds the mean speed by 10 kt or more",["Whenever the mean wind speed is 15 kt or more","When the wind direction varies by 60° or more","When the maximum speed exceeds the mean speed by 5 kt or more"],"Example: 24015G28KT = wind from 240° at 15 kt, gusting 28 kt. A gust group needs a difference of 10 kt or more between the mean and the maximum speed."],
+["WIND","A METAR shows 24012KT 210V280. What does the second group tell you?","The wind direction varies between 210° and 280°",["The mean wind is 210° at the surface and 280° at 2000 ft","The wind speed varies between 21 kt and 28 kt","The wind is forecast to turn from 210° to 280°"],"The extreme directions are given clockwise. It is added when the direction varies by 60° or more but less than 180° during the 10-minute period."],
+["WIND","Over what period is the wind in a METAR averaged?","10 minutes",["2 minutes","30 minutes","60 minutes"],"METAR and SPECI use the 10-minute mean immediately before the observation. Local reports given to ATC use a 2-minute mean."],
+["VIS","What does a visibility group of 9999 mean?","10 km or more",["Exactly 9999 m","Just under 10 km, rounded down","Visibility not available (missing data)"],"Visibility is reported in metres, and 9999 is the code for 10 km or more."],
+["VIS","The RVR group R25L/0600N is reported. Which statement is correct?","RVR on runway 25L is 600 m, with no distinct change",["RVR on runway 25L is 600 m and decreasing","Visibility on runway 25L is 600 m towards the north","RVR on runway 25L is 600 ft, with no distinct change"],"R = RVR group, 25L = runway, 0600 = metres, N = no distinct change (U upward, D downward)."],
+["VIS","What does R12/P2000 mean?","RVR on runway 12 is more than 2000 m (above the maximum reportable value)",["RVR on runway 12 is exactly 2000 m","RVR on runway 12 is below 2000 m","RVR on runway 12 is 2000 m and improving"],"P = plus: above the highest value that can be reported. M = minus: below the lowest value, for example M0050."],
+["WX","Mist (BR) is reported instead of fog (FG) when the visibility is:","1000 m up to 5000 m",["Below 1000 m","5000 m up to 10 km","Below 200 m"],"FG = visibility below 1000 m. BR = visibility of at least 1000 m and at most 5000 m."],
+["WX","How far from the aerodrome is a phenomenon coded with the VC prefix, such as VCTS?","Between about 8 and 16 km from the aerodrome reference point",["Within 5 km of the runway","Between 16 and 50 km from the aerodrome","Anywhere inside the control zone"],"VC = in the vicinity: not at the aerodrome itself, but within roughly 8–16 km of the aerodrome reference point."],
+["CLOUD","A METAR reports SCT008 BKN015 OVC030. What is the ceiling?","1500 ft",["800 ft","3000 ft","No ceiling is reported"],"The ceiling is the height of the lowest layer of BKN or OVC (5 oktas or more). SCT does not count."],
+["CLOUD","How are cloud base heights given in a METAR?","In hundreds of feet above aerodrome elevation",["In hundreds of feet above mean sea level","In tens of metres above ground level","In thousands of feet above aerodrome elevation"],"BKN015 = cloud base at 1500 ft above aerodrome elevation."],
+["CLOUD","Which set of conditions must ALL be met before CAVOK can be reported?","Visibility 10 km or more; no cloud below 5000 ft (or the highest MSA if greater); no CB or TCU; no significant weather",["Visibility 10 km or more; no BKN or OVC below 5000 ft; no CB; no precipitation","Visibility 5 km or more; no cloud below 1500 ft; no CB; no significant weather","Visibility 10 km or more; ceiling above 1500 ft; no thunderstorm"],"Any cloud below 5000 ft (even FEW), any CB or TCU, or any significant weather rules CAVOK out."],
+["TP","A US METAR gives A2992. Approximately what QNH is this?","1013 hPa",["2992 hPa","1029 hPa","992 hPa"],"A = altimeter setting in hundredths of inches of mercury: 29.92 inHg is about 1013 hPa."],
+["REP","For how long does a NOSIG trend apply?","The 2 hours after the observation time",["The next 30 minutes","The next hour","The next 6 hours"],"A trend forecast is valid for 2 hours from the time of the report. NOSIG = no significant change expected."],
+["REP","What is the difference between a METAR and a SPECI?","A METAR is issued at fixed intervals; a SPECI is issued when specified changes occur in between",["A METAR is for pilots and a SPECI is for ATC only","A SPECI is a forecast and a METAR is an observation","A METAR is for international flights and a SPECI for domestic flights"],"Both are observations. SPECI is issued when conditions pass specified thresholds between routine reports."],
+["REP","What does the time group 111250Z mean?","Observation on day 11, at 12:50 UTC",["Observation on day 11, at 12:50 local time","Observation on day 12, at 11:50 UTC","Valid until 12:50 UTC on day 11"],"The group is ddhhmm followed by Z, which stands for UTC."]
+];
+
+// ---------- helpers ----------
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const p2=n=>String(n).padStart(2,"0"),p3=n=>String(n).padStart(3,"0"),p4=n=>String(n).padStart(4,"0");
+const norm=d=>(((d-1)%360)+360)%360+1;
+const MINUS="\u2212";
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function mkQ(base,correct,wrongs){
+  const w=[...new Set(wrongs.filter(x=>x&&x!==correct))].slice(0,3);
+  const opts=shuffle([correct,...w]);
+  return Object.assign({},base,{correct,wrongs:w,opts,a:opts.indexOf(correct)});
+}
+const reshuffle=q=>mkQ(q,q.correct,q.wrongs);
+
+// ---------- abbreviation questions ----------
+function bigrams(s){const t=String(s).replace(/[^A-Z0-9]/gi,"").toUpperCase(),r=new Set();for(let i=0;i<t.length-1;i++)r.add(t.slice(i,i+2));return r}
+function pickWrong(e,field){
+  const m=e.mean.toLowerCase(),A=bigrams(e.code);
+  const cand=E.filter(o=>{
+    if(o===e||o[field]===e[field])return false;
+    const n=o.mean.toLowerCase();
+    return !(m.includes(n)||n.includes(m));   // skip options that would also be a valid answer
+  });
+  const top=cand.map(o=>{
+    let s=o.cat===e.cat?3:0;const B=bigrams(o.code);A.forEach(x=>{if(B.has(x))s++});
+    return [s+Math.random()*2,o];
+  }).sort((a,b)=>b[0]-a[0]).slice(0,10).map(x=>x[1]);
+  const out=[],seen=new Set([e[field]]);
+  for(const o of shuffle(top)){if(!seen.has(o[field])){seen.add(o[field]);out.push(o[field])}if(out.length===3)break}
+  return out;
+}
+function entryExpl(e){
+  return `<code>${esc(e.code)}</code> = ${esc(e.mean)}.`+(e.note?" "+esc(e.note):"")+(e.ex?` Example: <code>${esc(e.ex)}</code>`:"");
+}
+function qDec(e){
+  return mkQ({type:"dec",cat:e.cat,mono:false,
+    prompt:`<p class="qtext">What does <code class="cd">${esc(e.code)}</code> mean?</p>`+(e.ex?`<p class="hint">Example: <code>${esc(e.ex)}</code></p>`:""),
+    expl:entryExpl(e)},e.mean,pickWrong(e,"mean"));
+}
+function qEnc(e){
+  return mkQ({type:"enc",cat:e.cat,mono:true,
+    prompt:`<p class="qtext">Which code means <b>${esc(e.mean)}</b>?</p>`,
+    expl:entryExpl(e)},e.code,pickWrong(e,"code"));
+}
+function qRule(r){
+  return mkQ({type:"rule",cat:r[0],mono:false,prompt:`<p class="qtext">${esc(r[1])}</p>`,expl:esc(r[4])},r[2],r[3]);
+}
+
+// ---------- METAR generator ----------
+const STATIONS=[["EBBR","Brussels"],["EBAW","Antwerp"],["EBOS","Ostend-Bruges"],["EBLG","Liège"],["EBCI","Brussels South Charleroi"],["EBKT","Kortrijk-Wevelgem"],["EHAM","Amsterdam Schiphol"],["EDDF","Frankfurt"],["ELLX","Luxembourg"],["LFPG","Paris Charles de Gaulle"],["EGLL","London Heathrow"]];
+const RWYS=["25L","25R","07L","07R","01","19","02","20"];
+const AM=[["FEW","Few (1–2 oktas)"],["SCT","Scattered (3–4 oktas)"],["BKN","Broken (5–7 oktas)"],["OVC","Overcast (8 oktas)"]];
+const eTok=code=>{const e=EC[code];return{kind:"entry",entry:e,cat:e.cat,tok:code,text:e.mean}};
+
+const K={};
+K.time=()=>{
+  const d=ri(1,28),h=ri(0,23),m=pick([20,50]),hm=p2(h)+":"+p2(m);
+  const near=[`Day ${d}, ${hm} local time`,`Valid until day ${d}, ${hm} UTC`];
+  if(d<=23&&h>=1&&h!==d)near.push(`Day ${h}, ${p2(d)}:${p2(m)} UTC`);
+  return{kind:"time",cat:"REP",tok:p2(d)+p2(h)+p2(m)+"Z",text:`Day ${d}, ${hm} UTC`,near};
+};
+K.wind=(o={})=>{
+  const t=o.sub||pick(["norm","norm","norm","gust","gust","vrb","mps","calm"]);
+  const d=ri(1,36)*10,D=p3(d),rec=p3(norm(d+180)),s=ri(3,22);
+  const base={kind:"wind",sub:t,cat:"WIND",dir:d};
+  if(t==="calm")return{...base,tok:"00000KT",text:"Calm",near:["Variable wind direction at 1 kt"]};
+  if(t==="vrb"){const v=ri(1,3);return{...base,tok:"VRB"+p2(v)+"KT",text:`Variable wind direction at ${v} kt`,near:[`Wind from ${D}° at ${v} kt`,`Variable wind direction at ${v} m/s`,"Calm"]}}
+  if(t==="mps"){const v=ri(2,12);return{...base,tok:D+p2(v)+"MPS",text:`Wind from ${D}° at ${v} m/s`,near:[`Wind from ${D}° at ${v} kt`,`Wind from ${rec}° at ${v} m/s`]}}
+  if(t==="gust"){const v=ri(8,20),g=v+ri(10,18);return{...base,tok:D+p2(v)+"G"+p2(g)+"KT",text:`Wind from ${D}° at ${v} kt, gusting ${g} kt`,near:[`Wind from ${D}° at ${g} kt, gusting ${v} kt`,`Wind from ${D}° at ${v} kt`,`Wind from ${D}° at ${g} kt`]}}
+  return{...base,tok:D+p2(s)+"KT",text:`Wind from ${D}° at ${s} kt`,near:[`Wind from ${D}° at ${s} m/s`,`Wind blowing towards ${D}° at ${s} kt`,`Wind from ${rec}° at ${s} kt`]};
+};
+K.var=(o={})=>{
+  const d=o.dir||ri(1,36)*10,a=norm(d-ri(3,6)*10),b=norm(d+ri(3,6)*10),A=p3(a),B=p3(b);
+  return{kind:"var",cat:"WIND",tok:A+"V"+B,text:`Wind direction varying clockwise between ${A}° and ${B}°`,
+    near:[`Wind from ${A}° with the speed varying up to ${Math.round(b/10)} kt`,`Wind shifting from ${A}° to ${B}° during the next 2 hours`]};
+};
+K.ws=(o={})=>{
+  const rw=o.rw||pick(RWYS),all=Math.random()<.3,rw2=pick(RWYS.filter(x=>x!==rw));
+  return all
+    ?{kind:"ws",cat:"WIND",tok:"WS ALL RWY",text:"Wind shear on all runways",near:["Wind shear on the runway in use only","Wind shear forecast on all runways"]}
+    :{kind:"ws",cat:"WIND",tok:`WS R${rw}`,text:`Wind shear on runway ${rw}`,near:[`Wind shear on runway ${rw2}`,`Runway ${rw} closed because of wind shear`]};
+};
+K.vis=(o={})=>{
+  const v=o.v!=null?o.v:pick([9999,9999,8000,7000,6000,5000,4000,3000,2000,1500,1200,800,500,350,200]);
+  let text,near=[];
+  if(v===9999){text="Visibility 10 km or more";near=["Visibility exactly 9999 m","Visibility 999 m","Visibility 9.9 km"]}
+  else{text=`Visibility ${v} m`;if(v*10<9999)near.push(`Visibility ${v*10} m`);near.push(`Visibility ${v/10} m`,`Visibility ${v} ft`)}
+  return{kind:"vis",cat:"VIS",tok:p4(v),text,near};
+};
+K.rvr=(o={})=>{
+  const rw=o.rw||pick(RWYS),k=o.sub||pick(["v","v","v","v","p","m"]);
+  if(k==="p")return{kind:"rvr",sub:"p",cat:"VIS",tok:`R${rw}/P2000`,text:`RVR runway ${rw}: more than 2000 m`,near:[`RVR runway ${rw}: exactly 2000 m`,`RVR runway ${rw}: less than 2000 m`,`RVR runway ${rw}: 2000 m and increasing`]};
+  if(k==="m")return{kind:"rvr",sub:"m",cat:"VIS",tok:`R${rw}/M0050`,text:`RVR runway ${rw}: less than 50 m`,near:[`RVR runway ${rw}: exactly 50 m`,`RVR runway ${rw}: more than 50 m`,`RVR runway ${rw}: 50 m and decreasing`]};
+  const v=o.v||pick([150,200,300,350,500,600,800,1000,1200,1500,1800]);
+  const tr=pick(["U","D","N"]),TT={U:"increasing",D:"decreasing",N:"no distinct change"};
+  const rw2=pick(RWYS.filter(x=>x!==rw));
+  const near=["U","D","N"].filter(x=>x!==tr).map(x=>`RVR runway ${rw}: ${v} m, ${TT[x]}`);
+  near.push(`RVR runway ${rw2}: ${v} m, ${TT[tr]}`);
+  return{kind:"rvr",sub:"v",cat:"VIS",tok:`R${rw}/${p4(v)}${tr}`,text:`RVR runway ${rw}: ${v} m, ${TT[tr]}`,near};
+};
+K.cloud=(o={})=>{
+  const am=o.am||pick(["FEW","SCT","BKN","OVC"]),h=o.h||pick([3,5,8,10,12,15,18,20,25,30,40,50,80]),suf=o.suffix||"";
+  const i=AM.findIndex(x=>x[0]===am),nm=AM[i][1];
+  const sx=suf==="CB"?", cumulonimbus":suf==="TCU"?", towering cumulus":"";
+  const near=AM.filter((x,j)=>Math.abs(j-i)===1).map(x=>`${x[1]} at ${h*100} ft${sx}`);
+  if(h<=50)near.push(`${nm} at ${h*1000} ft${sx}`);
+  near.push(`${nm} at ${h*100} m${sx}`);
+  if(suf)near.push(`${nm} at ${h*100} ft`);
+  return{kind:"cloud",cat:"CLOUD",tok:am+p3(h)+suf,text:`${nm} at ${h*100} ft${sx}`,near};
+};
+K.vv=(o={})=>{
+  const h=o.h||pick([1,2,3,4]);
+  return{kind:"vv",cat:"CLOUD",tok:"VV"+p3(h),text:`Sky obscured, vertical visibility ${h*100} ft`,near:[`Overcast at ${h*100} ft`,`Sky obscured, vertical visibility ${h*100} m`,`Sky obscured, vertical visibility ${h*1000} ft`]};
+};
+K.temp=(o={})=>{
+  const t=o.t!=null?o.t:ri(-8,30),d=o.d!=null?o.d:t-ri(0,8);
+  const f=n=>n<0?"M"+p2(-n):p2(n),g=n=>n<0?MINUS+(-n):String(n);
+  const near=[];
+  if(t!==d)near.push(`Temperature ${g(d)} °C, dew point ${g(t)} °C`);
+  if(t!==0||d!==0)near.push(`Temperature ${g(-t)} °C, dew point ${g(-d)} °C`);
+  if(d!==0)near.push(`Temperature ${g(t)} °C, dew point ${g(-d)} °C`);
+  return{kind:"temp",cat:"TP",tok:`${f(t)}/${f(d)}`,text:`Temperature ${g(t)} °C, dew point ${g(d)} °C`,near};
+};
+K.qnh=(o={})=>{
+  const q=o.q||ri(985,1040),s=p4(q),sw=Number(s.slice(0,2)+s[3]+s[2]);
+  return{kind:"qnh",cat:"TP",tok:"Q"+s,text:`QNH ${q} hPa`,near:[`QNH ${sw} hPa`,`QNH ${q+10} hPa`,`Altimeter setting ${(q/100).toFixed(2)} inHg`]};
+};
+
+function layers(n,lo,hi,amFrom){
+  const hs=shuffle([3,5,8,10,12,15,18,20,25,30,35,40,50,60,80,100].filter(h=>h>=lo&&h<=hi)).slice(0,n).sort((a,b)=>a-b);
+  const out=[];let ai=ri(amFrom,Math.min(3,amFrom+1));
+  for(const h of hs){out.push({am:AM[ai][0],h});if(ai>=3)break;ai=Math.min(3,ai+ri(1,2))}
+  return out;
+}
+
+function genMetar(){
+  const sc=pick(["good","good","cavok","rain","rain","sh","fog","fog","snow","ts"]);
+  const st=pick(STATIONS),T=[],add=t=>{T.push(t);return t};
+  add({...eTok("METAR"),ask:false});
+  add({kind:"plain",ask:false,cat:"REP",tok:st[0],text:`Aerodrome: ${st[1]} (ICAO location indicator)`});
+  add(K.time());
+  if(Math.random()<.1)add(eTok("AUTO"));
+  const w=add(K.wind(sc==="ts"&&Math.random()<.5?{sub:"gust"}:{}));
+  if((w.sub==="norm"||w.sub==="gust")&&Math.random()<.25)add(K.var({dir:w.dir}));
+
+  let t,d,vis=9999,wx=[],cl=[],cav=false;
+  if(sc==="cavok"){cav=true;t=ri(6,28);d=t-ri(2,10)}
+  else if(sc==="good"){vis=pick([9999,9999,9999,8000,7000,6000]);cl=layers(ri(1,2),8,45,0);t=ri(2,25);d=t-ri(2,9)}
+  else if(sc==="rain"){vis=pick([2000,3000,4000,5000,6000,8000]);wx=[pick(["-RA","-RA","RA","+RA","-DZ"])];if(vis<=5000&&Math.random()<.25)wx.push("BR");cl=layers(ri(1,2),5,20,2);t=ri(3,16);d=t-ri(0,2)}
+  else if(sc==="sh"){vis=pick([3000,4000,6000,8000,9999]);wx=[pick(["SHRA","SHRA","+SHRA","VCSH","SHGR"])];cl=layers(ri(1,2),10,25,1);cl[0].suffix=wx[0]==="SHGR"?"CB":pick(["CB","TCU"]);t=ri(4,18);d=t-ri(1,4)}
+  else if(sc==="ts"){vis=pick([1500,2000,3000,5000,6000]);wx=[pick(["TSRA","+TSRA","TSGR","VCTS","TS"])];cl=layers(ri(1,2),10,25,1);cl[0].suffix="CB";t=ri(12,30);d=t-ri(1,5)}
+  else if(sc==="fog"){
+    if(Math.random()<.75){t=ri(-4,6);d=Math.random()<.5?t:t-1;vis=pick([100,200,300,350,500,800]);wx=[t<=0?"FZFG":"FG"];cl=Math.random()<.35?[{vv:pick([1,2,3])}]:[{am:"OVC",h:pick([3,5])}]}
+    else{vis=pick([1000,1500,2000,3000,4000,5000]);wx=["BR"];cl=layers(1,3,8,1);t=ri(0,12);d=t-ri(0,1)}
+  }
+  else{t=ri(-6,1);d=t-ri(0,2);vis=pick([800,1200,1500,2000,3000]);wx=[pick(["-SN","SN","+SN","SHSN"])];cl=layers(ri(1,2),6,15,2)}
+
+  if(cav)add(eTok("CAVOK"));
+  else{
+    add(K.vis({v:vis}));
+    if(sc==="fog"&&vis<1500)shuffle(RWYS).slice(0,ri(1,2)).forEach(rw=>add(K.rvr({rw,sub:"v",v:Math.min(2000,Math.max(50,Math.round((vis+ri(-100,200))/50)*50))})));
+    wx.forEach(c=>add(eTok(c)));
+    cl.forEach(l=>add(l.vv?K.vv({h:l.vv}):K.cloud({am:l.am,h:l.h,suffix:l.suffix})));
+  }
+  add(K.temp({t,d}));add(K.qnh({}));
+  const r2=Math.random();
+  if(r2<.08)add(eTok(pick(["RERA","RETS"])));else if(r2<.14)add(K.ws({}));
+  const r=Math.random();
+  if(r<.55||(r>=.8&&!wx.length))add(eTok("NOSIG"));
+  else if(r<.8){
+    add(eTok("TEMPO"));add(K.vis({v:pick([1500,2000,3000,4000,5000])}));
+    const w2=pick(["-SHRA","SHRA","-RA","TSRA","BR"]);add(eTok(w2));
+    if(w2==="TSRA")add(K.cloud({am:"SCT",h:15,suffix:"CB"}));
+  }else{add(eTok("BECMG"));add(K.vis({v:pick([8000,9999])}));add(eTok("NSW"))}
+  return T;
+}
+
+function fillWrong(correct,near,alt){
+  const out=[],add=t=>{if(t&&t!==correct&&!out.includes(t))out.push(t)};
+  shuffle(near).slice(0,2).forEach(add);
+  for(let g=0;out.length<3&&g<80;g++)add(alt());
+  shuffle(near).forEach(t=>{if(out.length<3)add(t)});
+  return out;
+}
+function tokenQ(t,T){
+  const wrong=t.entry?pickWrong(t.entry,"mean"):fillWrong(t.text,t.near||[],()=>K[t.kind]({sub:t.sub==="calm"?undefined:t.sub}).text);
+  const html=T.map(x=>x===t?`<mark>${esc(x.tok)}</mark>`:esc(x.tok)).join(" ");
+  const rows=T.map(x=>`<tr><td><code>${esc(x.tok)}</code></td><td>${esc(x.text)}</td></tr>`).join("");
+  return mkQ({type:"metar",cat:t.cat,mono:false,
+    prompt:`<p class="qtext">Decode the highlighted group of this METAR.</p><pre class="metar">${html}</pre>`,
+    expl:`<code>${esc(t.tok)}</code> = ${esc(t.text)}.<details class="full" open><summary>Full decode</summary><table class="dec">${rows}</table></details>`},
+    t.text,wrong);
+}
+function genMetarQ(cats){
+  for(let i=0;i<30;i++){
+    const T=genMetar(),ok=T.filter(x=>x.ask!==false&&cats.has(x.cat));
+    if(ok.length)return tokenQ(pick(ok),T);
+  }
+  return null;
+}
+
+// ---------- deck ----------
+function buildPools(types,cats){
+  const P={},es=E.filter(e=>cats.has(e.cat));
+  if(types.has("dec"))P.dec=es.map(qDec);
+  if(types.has("enc"))P.enc=es.map(qEnc);
+  if(types.has("rule"))P.rule=RULES.filter(r=>cats.has(r[0])).map(qRule);
+  if(types.has("metar")){P.metar=[];for(let g=0;P.metar.length<METAR_N&&g<400;g++){const q=genMetarQ(cats);if(q)P.metar.push(q)}}
+  return P;
+}
+function buildDeck(types,cats,n){
+  const P=buildPools(types,cats),keys=Object.keys(P).filter(k=>P[k].length);
+  const total=keys.reduce((s,k)=>s+P[k].length,0);
+  if(!keys.length)return[];
+  if(n==="all"||n>=total)return shuffle(keys.flatMap(k=>P[k]));
+  const quota={},base=Math.floor(n/keys.length);
+  keys.forEach(k=>quota[k]=Math.min(base,P[k].length));
+  let left=n-keys.reduce((s,k)=>s+quota[k],0);
+  for(let g=0;left>0&&g<10000;g++){for(const k of shuffle(keys)){if(left>0&&quota[k]<P[k].length){quota[k]++;left--}}}
+  return shuffle(keys.flatMap(k=>shuffle(P[k]).slice(0,quota[k])));
+}
+
+// ---------- UI ----------
+if(typeof document!=="undefined"&&document.getElementById("app")){
+const app=document.getElementById("app");
+const st={screen:"start",types:new Set(Object.keys(TYPES)),cats:new Set(Object.keys(CATS)),n:20,deck:[],i:0,sel:null,checked:false,res:[]};
+const count=c=>E.filter(e=>e.cat===c).length;
+function estimate(){
+  if(!st.cats.size)return 0;
+  const es=E.filter(e=>st.cats.has(e.cat)).length;let t=0;
+  if(st.types.has("dec"))t+=es;if(st.types.has("enc"))t+=es;
+  if(st.types.has("rule"))t+=RULES.filter(r=>st.cats.has(r[0])).length;
+  if(st.types.has("metar"))t+=METAR_N;
+  return st.n==="all"?t:Math.min(st.n,t);
+}
+function start(){
+  st.deck=buildDeck(st.types,st.cats,st.n);
+  if(!st.deck.length)return;
+  st.i=0;st.res=[];st.sel=null;st.checked=false;renderQ();
+}
+
+function renderStart(){
+  st.screen="start";
+  const est=estimate();
+  const refs=Object.keys(CATS).map(c=>`<h3 style="--c:var(--${c})">${CATS[c]}</h3><div class="tw"><table><tr><th>Code</th><th>Meaning</th><th>Example</th></tr>${E.filter(e=>e.cat===c).map(e=>`<tr><td><code>${esc(e.code)}</code></td><td>${esc(e.mean)}</td><td>${e.ex?`<code>${esc(e.ex)}</code>`:""}</td></tr>`).join("")}</table></div>`).join("");
+  app.innerHTML=`<h1>METAR abbreviations quiz</h1>
+  <p class="lede">Practise the abbreviations and codes used in METARs: wind, visibility and RVR, weather, cloud, temperature and pressure, and the trend. Every answer comes with a short explanation, and the METAR questions use a new random report each time.</p>
+  <div class="sect">Question types</div>
+  <div class="types">${Object.entries(TYPES).map(([k,v])=>`<label><input type="checkbox" data-t="${k}" ${st.types.has(k)?"checked":""}> <span><b>${v}</b> <small>${TYPE_DESC[k]}</small></span></label>`).join("")}</div>
+  <div class="sect">Topics</div>
+  <div class="picker" role="group" aria-label="Topics">${Object.entries(CATS).map(([k,v])=>`<button class="chip" style="--c:var(--${k})" aria-pressed="${st.cats.has(k)}" data-k="${k}"><span class="sw"></span>${v}<small>${count(k)}</small></button>`).join("")}</div>
+  <div class="opts"><label>Number of questions
+    <select id="n">${[10,20,30,50].map(x=>`<option value="${x}" ${st.n===x?"selected":""}>${x}</option>`).join("")}<option value="all" ${st.n==="all"?"selected":""}>All available</option></select></label></div>
+  <button class="primary" id="go" ${est?"":"disabled"}>Start ${est} question${est===1?"":"s"}</button>
+  <p class="legend">Every question has four options and exactly one correct answer. Option order is always shuffled. On a keyboard, press <b>1</b>–<b>4</b> to answer and <b>Enter</b> to check or continue. Weather codes combine an optional intensity (<b>−</b> light, <b>+</b> heavy, none = moderate), an optional descriptor and a phenomenon, for example <b>+TSRA</b>.</p>
+  <details class="ref"><summary>Reference sheet: all codes in this quiz</summary>${refs}</details>`;
+  app.querySelectorAll("[data-t]").forEach(b=>b.onchange=()=>{b.checked?st.types.add(b.dataset.t):st.types.delete(b.dataset.t);renderStart()});
+  app.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{const k=b.dataset.k;st.cats.has(k)?st.cats.delete(k):st.cats.add(k);renderStart()});
+  app.querySelector("#n").onchange=e=>{st.n=e.target.value==="all"?"all":Number(e.target.value);renderStart()};
+  app.querySelector("#go").onclick=start;
+}
+
+function renderQ(){
+  st.screen="q";
+  const q=st.deck[st.i],tot=st.deck.length;
+  const answered=st.res.filter(x=>x!==undefined).length,right=st.res.filter(Boolean).length;
+  app.innerHTML=`<div class="top"><span>Question ${st.i+1} of ${tot}</span><span>${right} correct of ${answered} answered</span></div>
+  <div class="bar"><i style="width:${st.i/tot*100}%"></i></div>
+  <article class="strip" style="--c:var(--${q.cat})"><div class="bay"></div><div class="body">
+    <div class="meta"><span>${CATS[q.cat]}</span><span>${TYPES[q.type]}</span><span>Keys 1–4</span></div>
+    ${q.prompt}
+    <ul class="choices" role="radiogroup">${q.opts.map((o,k)=>`<li><button class="choice" role="radio" aria-checked="false" data-k="${k}"><span class="box"></span><span>${q.mono?`<code>${esc(o)}</code>`:esc(o)}</span></button></li>`).join("")}</ul>
+    <div id="fb"></div>
+  </div></article>
+  <div class="actions"><button class="ghost" id="quit">End and see results</button><button class="primary" id="act" disabled>Check answer</button></div>`;
+  app.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{
+    if(st.checked)return;
+    st.sel=+b.dataset.k;
+    app.querySelectorAll(".choice").forEach(c=>c.setAttribute("aria-checked",String(+c.dataset.k===st.sel)));
+    app.querySelector("#act").disabled=false;
+  });
+  app.querySelector("#act").onclick=()=>st.checked?next():check();
+  app.querySelector("#quit").onclick=renderResults;
+}
+function check(){
+  const q=st.deck[st.i];st.checked=true;
+  const ok=st.sel===q.a;st.res[st.i]=ok;
+  app.querySelectorAll(".choice").forEach(c=>{
+    const k=+c.dataset.k;c.disabled=true;
+    if(k===q.a){c.classList.add("correct");c.querySelector(".box").textContent="✓"}
+    else if(k===st.sel){c.classList.add("wrong");c.querySelector(".box").textContent="✕"}
+  });
+  app.querySelector("#fb").innerHTML=`<div class="fb" style="--c2:var(${ok?"--ok":"--bad"})"><strong>${ok?"Correct.":"Not quite."}</strong>${q.expl}</div>`;
+  const b=app.querySelector("#act");b.textContent=st.i+1<st.deck.length?"Next question":"See results";b.focus();
+  app.querySelector(".bar i").style.width=((st.i+1)/st.deck.length*100)+"%";
+}
+function next(){
+  st.i++;st.sel=null;st.checked=false;
+  st.i<st.deck.length?renderQ():renderResults();
+  window.scrollTo(0,0);
+}
+
+function renderResults(){
+  st.screen="r";
+  const idx=st.deck.map((q,i)=>i).filter(i=>st.res[i]!==undefined);
+  const right=idx.filter(i=>st.res[i]).length,pct=idx.length?Math.round(right/idx.length*100):0;
+  const grp=(key,label)=>{
+    const m={};idx.forEach(i=>{const g=st.deck[i][key];m[g]=m[g]||[0,0];m[g][1]++;if(st.res[i])m[g][0]++});
+    return Object.entries(m).map(([g,[r,t]])=>`<tr><td>${label(g)}</td><td class="n">${r} / ${t}</td><td class="n">${Math.round(r/t*100)}%</td></tr>`).join("");
+  };
+  const missed=idx.filter(i=>!st.res[i]).map(i=>st.deck[i]);
+  app.innerHTML=`<h1>Results</h1>
+  <div class="score">${pct}%</div>
+  <p class="lede">${right} correct out of ${idx.length} answered${idx.length<st.deck.length?` (${st.deck.length-idx.length} not attempted)`:""}.</p>
+  ${idx.length?`<h2>By topic</h2><div class="tw"><table><tr><th>Topic</th><th class="n">Correct</th><th class="n">Score</th></tr>${grp("cat",g=>CATS[g])}</table></div>
+  <h2>By question type</h2><div class="tw"><table><tr><th>Type</th><th class="n">Correct</th><th class="n">Score</th></tr>${grp("type",g=>TYPES[g])}</table></div>`:""}
+  <div class="actions" style="justify-content:flex-start">${missed.length?`<button class="primary" id="retry">Retry ${missed.length} missed</button>`:""}<button class="ghost" id="new">New quiz</button></div>
+  ${missed.length?`<h2>Review missed questions</h2>${missed.map(q=>`<div class="miss" style="--c:var(--${q.cat})"><p class="ref">${CATS[q.cat]} · ${TYPES[q.type]}</p>${q.prompt}<p class="ans">${q.mono?`<code>${esc(q.correct)}</code>`:esc(q.correct)}</p><p>${q.expl}</p></div>`).join("")}`:""}`;
+  const r=app.querySelector("#retry");
+  if(r)r.onclick=()=>{st.deck=missed.map(reshuffle);st.i=0;st.res=[];st.sel=null;st.checked=false;renderQ();window.scrollTo(0,0)};
+  app.querySelector("#new").onclick=renderStart;
+  window.scrollTo(0,0);
+}
+
+document.addEventListener("keydown",e=>{
+  if(st.screen!=="q"||e.ctrlKey||e.metaKey||e.altKey)return;
+  if(/^[1-4]$/.test(e.key)){
+    const b=app.querySelectorAll(".choice")[+e.key-1];
+    if(b&&!st.checked)b.click();
+    return;
+  }
+  if(e.key==="Enter"&&!(e.target.closest&&e.target.closest("#act,#quit,summary,select,input"))){
+    const a=app.querySelector("#act");
+    if(a&&!a.disabled){e.preventDefault();a.click()}
+  }
+});
+
+renderStart();
+}
+</script>
+</body>
+</html>
