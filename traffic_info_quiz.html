@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Traffic information practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E4E9ED; --paper:#FBF8EA; --ink:#1B2631; --muted:#5B6873; --line:#C9D1D7;
+  --holder:#2F4A63; --ok:#2C7A4B; --okbg:#E1F1E6; --bad:#B23A2E; --badbg:#F8E3E0; --focus:#1F6FB2;
+  --WHAT:#2F6F9F; --WHERE:#B07A1E; --HOW:#B1495E;
+  --WHATbg:#DCE9F3; --WHEREbg:#F3E6CC; --HOWbg:#F3DCE1;
+  --sans:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --cond:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#121B23; --paper:#1D2934; --ink:#E6ECF0; --muted:#9AA8B3; --line:#33424F;
+    --holder:#8FB3D1; --ok:#6CC791; --okbg:#1B3527; --bad:#EE8577; --badbg:#3B2220; --focus:#7DB8EA;
+    --WHAT:#7DB8EA; --WHERE:#E3B35C; --HOW:#EE8FA3;
+    --WHATbg:#1F3445; --WHEREbg:#3A2F18; --HOWbg:#3E2229;
+  }
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.5}
+a.back{display:block;max-width:860px;margin:0 auto;padding:12px 18px 0;font:600 14px system-ui,sans-serif;color:var(--holder);text-decoration:none}
+main{max-width:860px;margin:0 auto;padding:16px 18px 60px}
+h1{font-family:var(--cond);font-weight:700;font-size:clamp(2rem,6vw,2.9rem);line-height:1.05;margin:0 0 6px;letter-spacing:.2px}
+h2{font-family:var(--cond);font-weight:600;font-size:1.5rem;margin:22px 0 6px}
+p.lede{color:var(--muted);margin:0 0 20px;max-width:64ch}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+code{font-family:var(--mono);font-size:.93em}
+
+/* start screen */
+.sect{font-family:var(--cond);font-weight:600;font-size:1.05rem;margin:20px 0 8px;color:var(--muted);letter-spacing:.4px;text-transform:uppercase}
+.picker{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}
+.chip{border:1.5px solid var(--line);background:var(--paper);border-radius:6px;padding:7px 12px;display:flex;gap:8px;align-items:center}
+.chip .sw{width:10px;height:22px;border-radius:2px;background:var(--holder)}
+.chip[aria-pressed="false"]{opacity:.45}
+.opts{display:flex;flex-wrap:wrap;gap:10px 22px;margin:8px 0;color:var(--muted)}
+.opts label{display:flex;gap:10px;align-items:center}
+select{font:inherit;color:var(--ink);background:var(--paper);border:1.5px solid var(--line);border-radius:6px;padding:5px 10px}
+.primary{background:var(--holder);color:var(--paper);border:0;border-radius:6px;padding:12px 22px;font-weight:600;font-size:1.05rem}
+.primary:disabled{opacity:.4;cursor:not-allowed}
+.ghost{background:transparent;border:1.5px solid var(--line);border-radius:6px;padding:10px 18px;font-weight:500}
+.good{border:1.5px solid var(--ok);color:var(--ok);background:transparent;border-radius:6px;padding:10px 18px;font-weight:600}
+.badbtn{border:1.5px solid var(--bad);color:var(--bad);background:transparent;border-radius:6px;padding:10px 18px;font-weight:600}
+.legend{margin-top:26px;color:var(--muted);font-size:.95rem;max-width:64ch}
+.legend b{color:var(--ink);font-weight:600}
+details.ref{margin-top:26px;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:10px 16px}
+details.ref summary{cursor:pointer;font-weight:600}
+details.ref p{margin:10px 0 4px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;margin:6px 0 14px;background:var(--paper);border:1px solid var(--line)}
+th,td{padding:6px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-family:var(--cond);font-weight:600;font-size:1.02rem;color:var(--muted)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+td.k{white-space:nowrap;font-family:var(--cond);font-size:1.05rem;font-weight:600}
+
+/* question strip */
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px;font-family:var(--cond);font-size:1.05rem;color:var(--muted)}
+.bar{height:4px;background:var(--line);border-radius:2px;margin-bottom:18px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--holder);transition:width .25s}
+.strip{display:grid;grid-template-columns:14px 1fr;background:var(--paper);border-radius:4px;border:1px solid var(--line);overflow:hidden}
+.strip .bay{background:var(--holder)}
+.strip .body{padding:16px 18px 18px;min-width:0}
+.meta{display:grid;grid-template-columns:auto 1fr;border-bottom:1px solid var(--line);margin:-16px -18px 14px;font-family:var(--cond);font-size:1rem}
+.meta span{padding:6px 12px;border-right:1px solid var(--line);white-space:nowrap}
+.meta span:last-child{border-right:0;color:var(--muted);text-align:right}
+.qtext{font-size:1.12rem;font-weight:500;margin:0 0 6px}
+.cs{font-family:var(--mono);font-weight:700;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:1px 8px}
+.hint{color:var(--muted);font-size:.95rem;margin:0 0 10px}
+.radar{background:#0D1A22;border:1px solid #243845;border-radius:6px;overflow:hidden;margin:8px 0 8px}
+.radar svg{display:block;width:100%;height:auto}
+.key{display:flex;flex-wrap:wrap;gap:4px 18px;align-items:center;color:var(--muted);font-size:.92rem;margin:0 0 8px}
+.key label{display:flex;gap:7px;align-items:center;cursor:pointer}
+.key .dot{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.fb{margin-top:16px;padding:12px 14px;border-radius:5px;border-left:4px solid var(--holder);background:var(--bg)}
+.fb strong.t{display:block;margin-bottom:6px;font-family:var(--cond);font-size:1.1rem;letter-spacing:.3px}
+.phrase{font-family:var(--mono);font-size:1rem;line-height:2;margin:0 0 6px;overflow-wrap:anywhere}
+.w{padding:2px 6px;border-radius:4px;border-bottom:3px solid var(--c);background:var(--cbg);box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.w.what{--c:var(--WHAT);--cbg:var(--WHATbg)}
+.w.where{--c:var(--WHERE);--cbg:var(--WHEREbg)}
+.w.how{--c:var(--HOW);--cbg:var(--HOWbg)}
+.tag{display:inline-block;font-family:var(--cond);font-weight:600;font-size:.95rem;letter-spacing:.4px;padding:0 8px;border-radius:4px;border-bottom:3px solid var(--c);background:var(--cbg);margin-right:6px}
+.tag.what{--c:var(--WHAT);--cbg:var(--WHATbg)}
+.tag.where{--c:var(--WHERE);--cbg:var(--WHEREbg)}
+.tag.how{--c:var(--HOW);--cbg:var(--HOWbg)}
+.fb table{margin:10px 0 8px;background:transparent}
+.fb td:first-child{width:1%;white-space:nowrap}
+.fb .small{color:var(--muted);font-size:.95rem;margin:6px 0 0}
+.fb .small b{color:var(--ink);font-weight:600}
+.alt{margin:8px 0 0;font-size:.95rem;color:var(--muted)}
+.alt .phrase{font-size:.9rem;line-height:1.9;color:var(--ink);margin:2px 0 0}
+.grade{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+.grade .q{font-weight:600;margin-right:4px}
+.miss-el{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.miss-el .chip{padding:5px 12px}
+.actions{display:flex;justify-content:space-between;gap:10px;margin-top:18px;flex-wrap:wrap}
+
+/* results */
+.score{font-family:var(--cond);font-weight:700;font-size:clamp(3rem,12vw,5rem);line-height:1;margin:6px 0 2px}
+.miss{background:var(--paper);border:1px solid var(--line);border-left:6px solid var(--holder);border-radius:4px;padding:12px 14px;margin-bottom:10px}
+.miss p{margin:4px 0}
+.miss .ref{font-family:var(--cond);color:var(--muted)}
+@media (max-width:520px){.meta{grid-template-columns:1fr}.meta span:last-child{display:none}.strip .body{padding:14px 12px 16px}.meta{margin:-14px -12px 12px}}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<a class="back" href="./">← Menu</a>
+<main id="app"></main>
+<script>
+/* =====================================================================
+   Traffic information practice
+   Template (ICAO PANS-ATM / SERA):  TRAFFIC <clock> <distance> <direction of flight / other
+   pertinent information: UNKNOWN, SLOW/FAST MOVING, CLOSING, OPPOSITE/SAME DIRECTION,
+   OVERTAKING, CROSSING L-R / R-L, type, level, CLIMBING/DESCENDING>
+   Here it is practised as WHAT (type) + WHERE (clock, range, level) + HOW (behaviour).
+   ===================================================================== */
+
+// ---------- small helpers ----------
+const rad=d=>d*Math.PI/180, deg=r=>r*180/Math.PI;
+const norm360=d=>((d%360)+360)%360;
+const norm180=d=>{d=norm360(d);return d>180?d-360:d};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const pickW=a=>{let t=a.reduce((s,x)=>s+x[1],0),r=Math.random()*t;for(const x of a){if((r-=x[1])<0)return x[0]}return a[a.length-1][0]};
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const clockOf=th=>{const c=Math.round(norm360(th)/30)%12;return c===0?12:c};
+
+const NUM=["ZERO","ONE","TWO","THREE","FOUR","FIVE","SIX","SEVEN","EIGHT","NINE"];
+const PHON={A:"ALFA",B:"BRAVO",C:"CHARLIE",D:"DELTA",E:"ECHO",F:"FOXTROT",G:"GOLF",H:"HOTEL",I:"INDIA",J:"JULIETT",K:"KILO",L:"LIMA",M:"MIKE",N:"NOVEMBER",O:"OSCAR",P:"PAPA",Q:"QUEBEC",R:"ROMEO",S:"SIERRA",T:"TANGO",U:"UNIFORM",V:"VICTOR",W:"WHISKEY",X:"XRAY",Y:"YANKEE",Z:"ZULU"};
+const sayChars=s=>[...s].filter(ch=>ch!=="-").map(ch=>/\d/.test(ch)?NUM[+ch]:(PHON[ch]||ch)).join(" ");
+const LETTERS="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+// ---------- data ----------
+// The ten aircraft types you asked for. spd = ground speed range (kt), lvl = level range (ft),
+// jet = limited to 250 kt below 10 000 ft.
+const TYPES=[
+  {id:"E190",name:"EMBRAER 190",say:"EMBRAER 190",spd:[180,450],lvl:[3000,38000],jet:true},
+  {id:"A340",name:"AIRBUS 340",say:"AIRBUS 340",spd:[200,490],lvl:[5000,40000],jet:true},
+  {id:"B77W",name:"BOEING 777",say:"BOEING 777",spd:[200,490],lvl:[5000,40000],jet:true},
+  {id:"C208",name:"CESSNA 208",say:"CESSNA 208",spd:[100,175],lvl:[1500,12000],jet:false},
+  {id:"C550",name:"CITATION 550",say:"CITATION 550",spd:[180,400],lvl:[3000,37000],jet:true},
+  {id:"AT76",name:"ATR 72",say:"ATR 72",spd:[160,280],lvl:[3000,25000],jet:false},
+  {id:"F35",name:"F35 LIGHTNING",say:"F35 LIGHTNING",spd:[250,550],lvl:[3000,40000],jet:false},
+  {id:"B350",name:"SUPER KING AIR",say:"SUPER KING AIR",spd:[150,300],lvl:[2000,30000],jet:false},
+  {id:"DA40",name:"DIAMOND 40",say:"DIAMOND 40",spd:[80,130],lvl:[1000,6000],jet:false},
+  {id:"R44",name:"ROBINSON 44",say:"ROBINSON 44",spd:[50,110],lvl:[1000,3000],jet:false}
+];
+// Profiles of the aircraft you are talking to (identified by callsign / registration only)
+const PROFS=[
+  {k:"airliner",w:5,spd:[180,450],lvl:[5000,38000],jet:true,cs:"airline"},
+  {k:"mid",w:2,spd:[150,280],lvl:[3000,24000],jet:false,cs:"reg"},
+  {k:"light",w:3,spd:[85,140],lvl:[1500,6000],jet:false,cs:"reg"}
+];
+const AIRLINES=[["BEL","BEELINE"],["DLH","LUFTHANSA"],["KLM","KLM"],["AFR","AIRFRANS"],["RYR","RYANAIR"],["EZY","EASY"],["BAW","SPEEDBIRD"],["SWR","SWISS"],["EIN","SHAMROCK"],["TAY","QUALITY"],["CLX","CARGOLUX"],["DHL","DHL"],["FDX","FEDEX"],["UAE","EMIRATES"],["SAS","SCANDINAVIAN"],["VLG","VUELING"]];
+
+const KINDS={crossing:"Crossing",opposite:"Opposite direction",same:"Same direction (closing)",overtaking:"Overtaking"};
+const KW={crossing:40,opposite:20,same:20,overtaking:20};
+const CLK={
+  crossing:[[9,2],[10,4],[11,4],[12,2],[1,4],[2,4],[3,2]],
+  opposite:[[11,3],[12,5],[1,3],[10,1],[2,1]],
+  same:[[11,3],[12,5],[1,3],[10,1],[2,1]],
+  overtaking:[[6,5],[5,3],[7,3],[4,1],[8,1]]
+};
+const SLOW_KT=120, FAST_KT=400;
+
+// ---------- levels ----------
+const allowedLvl=ft=>ft>=1000&&((ft<=4000&&ft%500===0)||(ft>=5000&&ft%1000===0));
+const okShown=ft=>ft>=1000&&(ft<=4000||ft>=5000);
+const fmtL=ft=>ft>=5000?"FL"+String(Math.round(ft/100)).padStart(3,"0"):ft+" ft";
+const sayL=ft=>ft>=5000?"FLIGHT LEVEL "+String(Math.round(ft/100)).padStart(3,"0"):ft+" FEET";
+
+function spdRange(m,lvl){let lo=m.spd[0],hi=m.spd[1];if(m.jet&&lvl<10000)hi=Math.min(hi,250);if(lo>hi-20)lo=hi-20;return[lo,hi]}
+function pickSpd(m,lvl){const[lo,hi]=spdRange(m,lvl);return ri(Math.ceil(lo/10),Math.floor(hi/10))*10}
+function pickOwnLevel(p){const l=[];for(let ft=1000;ft<=40000;ft+=500)if(allowedLvl(ft)&&ft>=p.lvl[0]&&ft<=p.lvl[1])l.push(ft);return pick(l)}
+function pickTrafficLevel(own,m){
+  for(const d of shuffle([-2000,-1000,-500,0,0,0,500,1000,2000])){
+    const ft=own+d;if(allowedLvl(ft)&&ft>=m.lvl[0]&&ft<=m.lvl[1])return ft;
+  }
+  return null;
+}
+
+function genCallsign(prof){
+  if(prof.cs==="airline"){
+    const[d,t]=pick(AIRLINES);
+    const f=pick([()=>String(ri(1,999)),()=>String(ri(10,99))+pick([...LETTERS.replace(/[IOQ]/g,"")]),()=>String(ri(1,9))+pick([...LETTERS.replace(/[IOQ]/g,"")])+pick([...LETTERS.replace(/[IOQ]/g,"")]),()=>String(ri(1000,9999))])();
+    return{disp:d+f,say:t+" "+sayChars(f)};
+  }
+  const pre=pick(["OO-","OO-","OO-","OO-","PH-","D-E","G-"]),n=pre==="G-"?4:3;
+  let l="";for(let i=0;i<n;i++)l+=pick([...LETTERS]);
+  return{disp:pre+l,say:sayChars(pre+l)};
+}
+
+// ---------- geometry ----------
+// Own frame: x = right of own track, y = ahead of own track (NM, kt). theta = bearing relative to own track.
+// delta = traffic track relative to own track (-180..180, + = turned clockwise).
+function classify(theta,delta,s0,s1){
+  const c=clockOf(theta),a=Math.abs(delta);
+  if(a>=150)return[10,11,12,1,2].includes(c)?"opposite":null;
+  if(a<=30){
+    if(c>=4&&c<=8)return s1>=s0+20?"overtaking":null;
+    if(c>=10||c<=2)return s1<=s0-20?"same":null;
+    return null;
+  }
+  if(!(c>=9||c<=3))return null;
+  if(c===12)return"crossing";
+  const side=c>=9?-1:1; // -1 traffic on the left, +1 on the right
+  return((side<0&&delta>0)||(side>0&&delta<0))?"crossing":null;
+}
+
+function solve(kind,s0,tm,tlvl,theta,R){
+  const p={x:R*Math.sin(rad(theta)),y:R*Math.cos(rad(theta))};
+  const[lo,hi]=spdRange(tm,tlvl);
+  const om=Math.random()*2.2,oa=Math.random()*2*Math.PI,off={x:om*Math.cos(oa),y:om*Math.sin(oa)};
+  const Ts=[];for(let m=0.5;m<=12;m+=0.1)Ts.push(m/60);
+  for(const T of shuffle(Ts)){
+    const M={x:off.x,y:s0*T+off.y};                 // meeting point, own aircraft flies straight ahead
+    const v={x:(M.x-p.x)/T,y:(M.y-p.y)/T};
+    const s1=Math.round(Math.hypot(v.x,v.y)/10)*10;
+    if(s1<lo||s1>hi)continue;
+    const delta=norm180(Math.round(deg(Math.atan2(v.x,v.y))/10)*10);
+    const v1={x:s1*Math.sin(rad(delta)),y:s1*Math.cos(rad(delta))};
+    const rv={x:v1.x-0,y:v1.y-s0},rr=rv.x*rv.x+rv.y*rv.y;
+    if(rr<1)continue;
+    const t=-(p.x*rv.x+p.y*rv.y)/rr;                // hours to closest point of approach
+    if(t<1/60||t>12/60)continue;
+    const cpa=Math.hypot(p.x+rv.x*t,p.y+rv.y*t);
+    if(cpa>3.0)continue;
+    if(classify(theta,delta,s0,s1)!==kind)continue;
+    return{s1,delta,cpa,tcpa:t*60,p};
+  }
+  return null;
+}
+
+function genScenario(o){
+  const kinds=(o&&o.kinds&&o.kinds.length)?o.kinds:Object.keys(KINDS);
+  const pUnknown=o&&o.unknown?o.unknown:0, vertOn=!o||o.vert!==false;
+  for(let tries=0;tries<3000;tries++){
+    const kind=pickW(kinds.map(k=>[k,KW[k]]));
+    const prof=pickW(PROFS.map(p=>[p,p.w]));
+    const l0=pickOwnLevel(prof),s0=pickSpd(prof,l0);
+    const cs=genCallsign(prof);
+    const own={prof:prof.k,lvl:l0,spd:s0,hdg:ri(0,35)*10,disp:cs.disp,say:cs.say};
+    const tm=pick(TYPES.filter(m=>l0>=m.lvl[0]-2500&&l0<=m.lvl[1]+2500));
+    const base=pickTrafficLevel(l0,tm);if(base==null)continue;
+    let lvl=base,vert=0;
+    if(vertOn&&Math.random()<0.35){
+      const sh=base+pick([-400,-300,-200,-100,100,200,300,400]);
+      if(okShown(sh)&&sh>=tm.lvl[0]&&sh<=tm.lvl[1]){lvl=sh;vert=pick([1,-1])}
+    }
+    const clock=pickW(CLK[kind]);
+    const theta=norm360(clock*30+ri(-8,8)),R=ri(3,12);
+    const g=solve(kind,s0,tm,lvl,theta,R);if(!g)continue;
+    const unknown=Math.random()<pUnknown;
+    return{
+      kind,own,unknown,clock:clockOf(theta),R,theta,delta:g.delta,cpa:g.cpa,tcpa:g.tcpa,p:g.p,
+      tr:{type:tm,lvl,vert,spd:g.s1,hdg:norm360(own.hdg+g.delta)},
+      seed:Math.floor(Math.random()*1e9)
+    };
+  }
+  throw new Error("could not generate a scenario");
+}
+
+// ---------- model answer ----------
+function answer(s){
+  const t=s.tr,a=Math.abs(s.delta),own=s.own;
+  const what=s.unknown?"UNKNOWN":t.type.say;
+  const where=[s.clock+" O'CLOCK",s.R===1?"1 MILE":s.R+" MILES",sayL(t.lvl)];
+  const how=[],lr=s.delta>0?"LEFT TO RIGHT":"RIGHT TO LEFT";
+  const why=[];
+  if(s.kind==="crossing"){
+    how.push({t:"CROSSING "+lr,req:true});
+    why.push("Its track is "+a+"° to the "+(s.delta>0?"right":"left")+" of "+own.disp+"'s track, so it moves "+lr.toLowerCase()+" across the front.");
+  }else if(s.kind==="opposite"){
+    how.push({t:"OPPOSITE DIRECTION",req:true});
+    why.push("Its track is within "+(180-a)+"° of the reciprocal of "+own.disp+"'s track.");
+  }else if(s.kind==="same"){
+    how.push({t:"SAME DIRECTION",req:true},{t:"CLOSING",req:true});
+    why.push("Its track is within "+a+"° of "+own.disp+"'s track. It is ahead and "+(own.spd-t.spd)+" kt slower, so "+own.disp+" is closing on it.");
+  }else{
+    how.push({t:"OVERTAKING",req:true},{t:"SAME DIRECTION",req:false});
+    why.push("Its track is within "+a+"° of "+own.disp+"'s track. It is behind and "+(t.spd-own.spd)+" kt faster: it is overtaking.");
+  }
+  const slow=t.spd<=SLOW_KT,fast=t.spd>=FAST_KT;
+  if(slow)how.push({t:"SLOW MOVING",req:s.unknown});
+  if(fast)how.push({t:"FAST MOVING",req:s.unknown});
+  if(slow||fast)why.push("Ground speed "+t.spd+" kt: "+(slow?"SLOW MOVING (up to "+SLOW_KT+" kt)":"FAST MOVING ("+FAST_KT+" kt or more)")+(s.unknown?" is needed here because the type is not known.":", optional because the type is given."));
+  if(t.vert)how.push({t:t.vert>0?"CLIMBING":"DESCENDING",req:true});
+  if(s.unknown)why.push("The type is not known, so you say UNKNOWN instead of a type.");
+  const req=how.filter(h=>h.req).map(h=>h.t),opt=how.filter(h=>!h.req).map(h=>h.t);
+  return{what,where,how,req,opt,why,
+    whereTxt:where.join(", "),howTxt:req.join(", ")};
+}
+function phraseHTML(s,a,order){
+  const part=(c,t)=>'<span class="w '+c+'">'+esc(t)+'</span>';
+  const W=part("what",a.what),WH=part("where",a.whereTxt),H=part("how",a.howTxt);
+  return esc(s.own.say)+", TRAFFIC, "+W+", "+(order==="AB"?WH+", "+H:H+", "+WH);
+}
+function phraseText(s,a){return s.own.say+", TRAFFIC, "+a.what+", "+a.whereTxt+", "+a.howTxt}
+
+// ---------- radar picture ----------
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function layout(s,W,H){
+  const m=46,PX=(Math.min(W,H)-2*m)/13;
+  const toE=(x,y,h)=>x*Math.cos(rad(h))+y*Math.sin(rad(h)),toN=(x,y,h)=>-x*Math.sin(rad(h))+y*Math.cos(rad(h));
+  const h=s.own.hdg;
+  const dx=toE(s.p.x,s.p.y,h)*PX,dy=-toN(s.p.x,s.p.y,h)*PX;
+  const v0={x:s.own.spd*Math.sin(rad(h))/60*PX,y:-s.own.spd*Math.cos(rad(h))/60*PX};
+  const v1={x:s.tr.spd*Math.sin(rad(s.tr.hdg))/60*PX,y:-s.tr.spd*Math.cos(rad(s.tr.hdg))/60*PX};
+  const lx=m+Math.max(0,-dx),hx=W-m-Math.max(0,dx),ly=m+Math.max(0,-dy),hy=H-m-Math.max(0,dy);
+  const rnd=mulberry(s.seed);let best=null;
+  const over=(x,y)=>Math.max(0,8-x)+Math.max(0,x-(W-8))+Math.max(0,8-y)+Math.max(0,y-(H-8));
+  for(let i=0;i<150;i++){
+    const ox=lx+rnd()*Math.max(0,hx-lx),oy=ly+rnd()*Math.max(0,hy-ly);
+    const pen=over(ox+v0.x,oy+v0.y)+over(ox+dx+v1.x,oy+dy+v1.y);
+    if(!best||pen<best.pen)best={ox,oy,pen};
+    if(pen===0)break;
+  }
+  return{PX,m,own:{x:best.ox,y:best.oy,v:v0},tr:{x:best.ox+dx,y:best.oy+dy,v:v1}};
+}
+function placeLabels(items,circles,segs,W,H){
+  const placed=[];
+  const hit=(r,px,py,pad)=>px>=r.x-pad&&px<=r.x+r.w+pad&&py>=r.y-pad&&py<=r.y+r.h+pad;
+  const ovl=(a,b)=>a.x<b.x+b.w&&b.x<a.x+a.w&&a.y<b.y+b.h&&b.y<a.y+a.h;
+  return items.map(it=>{
+    const w=Math.max(...it.lines.map(l=>l.length))*7.7+12,h=36;
+    const c=[];
+    for(const d of[0,20,44,70,100]){
+      c.push([14+d,-14-h-d,d],[16+d,-h/2,d],[14+d,14+d,d],[-w/2,16+d,d],[-14-w-d,14+d,d],[-16-w-d,-h/2,d],[-14-w-d,-14-h-d,d],[-w/2,-16-h-d,d]);
+    }
+    let best=null;
+    for(const[ox,oy,dist]of c){
+      const r={x:it.x+ox,y:it.y+oy,w,h};let p=dist*1.4;
+      if(r.x<4||r.y<4||r.x+r.w>W-4||r.y+r.h>H-4)p+=1000;
+      for(const q of placed)if(ovl(r,q))p+=500;
+      for(const ci of circles)if(hit(r,ci.x,ci.y,14))p+=300;
+      for(const sg of segs){const n=Math.max(1,Math.ceil(sg.len/8));for(let i=0;i<=n;i++){const t=i/n;if(hit(r,sg.x0+(sg.x1-sg.x0)*t,sg.y0+(sg.y1-sg.y0)*t,2))p+=6}}
+      if(!best||p<best.p)best={p,r,dist};
+    }
+    best.r.dist=best.dist;placed.push(best.r);return best.r;
+  });
+}
+function radarSVG(s,W,H,aids,reveal){
+  const L=layout(s,W,H),PX=L.PX,o=L.own,t=L.tr;
+  const COWN="#7FD6FF",CTR="#FFC857",BG="#0D1A22";
+  let g='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="Radar picture with '+esc(s.own.disp)+' and one other aircraft" font-family="Barlow, system-ui, sans-serif">';
+  g+='<rect width="'+W+'" height="'+H+'" fill="'+BG+'"/>';
+  const gs=5*PX;
+  for(let x=gs;x<W;x+=gs)g+='<line x1="'+x.toFixed(1)+'" y1="0" x2="'+x.toFixed(1)+'" y2="'+H+'" stroke="#18303D" stroke-width="1"/>';
+  for(let y=gs;y<H;y+=gs)g+='<line x1="0" y1="'+y.toFixed(1)+'" x2="'+W+'" y2="'+y.toFixed(1)+'" stroke="#18303D" stroke-width="1"/>';
+  // scale bar + north
+  g+='<g stroke="#9FB6C3" stroke-width="2" fill="none"><path d="M14 '+(H-14)+'H'+(14+gs).toFixed(1)+'M14 '+(H-19)+'V'+(H-9)+'M'+(14+gs).toFixed(1)+' '+(H-19)+'V'+(H-9)+'"/></g>';
+  g+='<text x="'+(14+gs/2).toFixed(1)+'" y="'+(H-22)+'" fill="#9FB6C3" font-size="12" text-anchor="middle">5 NM</text>';
+  g+='<g fill="#9FB6C3" stroke="#9FB6C3"><path d="M'+(W-24)+' 36V14M'+(W-24)+' 12L'+(W-29)+' 21H'+(W-19)+'Z" stroke-width="1.5"/></g><text x="'+(W-24)+'" y="52" fill="#9FB6C3" font-size="12" text-anchor="middle">N</text>';
+  // range rings (own aircraft)
+  if(aids.rings||reveal){
+    for(let r=2;r<=14;r+=2){
+      g+='<circle cx="'+o.x.toFixed(1)+'" cy="'+o.y.toFixed(1)+'" r="'+(r*PX).toFixed(1)+'" fill="none" stroke="#2A4F61" stroke-width="1" stroke-dasharray="2 4"/>';
+      g+='<text x="'+(o.x+r*PX*0.7071+3).toFixed(1)+'" y="'+(o.y-r*PX*0.7071-3).toFixed(1)+'" fill="#5C8DA3" font-size="11">'+r+'</text>';
+    }
+  }
+  // clock face (own aircraft, own track up)
+  if(aids.clock||reveal){
+    const Rc=Math.min(104,Math.min(W,H)*0.26);
+    for(let k=1;k<=12;k++){
+      const a=rad(s.own.hdg+k*30),hl=reveal&&k===s.clock,st=hl?"#FFFFFF":"#3F7A93";
+      g+='<line x1="'+(o.x+16*Math.sin(a)).toFixed(1)+'" y1="'+(o.y-16*Math.cos(a)).toFixed(1)+'" x2="'+(o.x+Rc*Math.sin(a)).toFixed(1)+'" y2="'+(o.y-Rc*Math.cos(a)).toFixed(1)+'" stroke="'+st+'" stroke-width="'+(hl?2.5:1)+'"'+(hl?'':' stroke-dasharray="3 4"')+'/>';
+      g+='<text x="'+(o.x+(Rc+13)*Math.sin(a)).toFixed(1)+'" y="'+(o.y-(Rc+13)*Math.cos(a)+4).toFixed(1)+'" fill="'+(hl?"#FFFFFF":(k===12?"#BFE6F5":"#7FB4CB"))+'" font-size="'+(hl?15:13)+'" font-weight="'+(hl||k===12?700:500)+'" text-anchor="middle">'+k+'</text>';
+    }
+  }
+  // connector on reveal
+  if(reveal){
+    g+='<line x1="'+o.x.toFixed(1)+'" y1="'+o.y.toFixed(1)+'" x2="'+t.x.toFixed(1)+'" y2="'+t.y.toFixed(1)+'" stroke="#FFFFFF" stroke-width="1.5" stroke-dasharray="6 5" opacity=".85"/>';
+  }
+  // vectors (1 minute)
+  const vec=(a,hdg,c,dash)=>'<line x1="'+a.x.toFixed(1)+'" y1="'+a.y.toFixed(1)+'" x2="'+(a.x+a.v.x).toFixed(1)+'" y2="'+(a.y+a.v.y).toFixed(1)+'" stroke="'+c+'" stroke-width="2"'+(dash?' stroke-dasharray="6 3"':'')+'/>'+
+    '<g transform="translate('+(a.x+a.v.x).toFixed(1)+' '+(a.y+a.v.y).toFixed(1)+') rotate('+hdg+')"><path d="M0 -5L5.5 6L-5.5 6Z" fill="'+c+'"/></g>';
+  g+=vec(o,s.own.hdg,COWN,false)+vec(t,s.tr.hdg,CTR,s.unknown);
+  // symbols
+  const sym=(a,hdg,c,hollow)=>'<g transform="translate('+a.x.toFixed(1)+' '+a.y.toFixed(1)+') rotate('+hdg+')"><path d="M0 -12L8.5 9L0 5L-8.5 9Z" fill="'+(hollow?BG:c)+'" stroke="'+c+'" stroke-width="2"'+(hollow?' stroke-dasharray="3 2"':'')+' stroke-linejoin="round"/></g>';
+  g+=sym(o,s.own.hdg,COWN,false)+sym(t,s.tr.hdg,CTR,s.unknown);
+  // labels
+  const arrow=s.tr.vert>0?" ↑":s.tr.vert<0?" ↓":"";
+  const items=[
+    {x:o.x,y:o.y,lines:[s.own.disp,fmtL(s.own.lvl)+"  "+s.own.spd+" kt"],c:COWN},
+    {x:t.x,y:t.y,lines:[s.unknown?"UNKNOWN":s.tr.type.name,fmtL(s.tr.lvl)+arrow+"  "+s.tr.spd+" kt"],c:CTR}
+  ];
+  const segs=[o,t].map(a=>({x0:a.x,y0:a.y,x1:a.x+a.v.x,y1:a.y+a.v.y,len:Math.hypot(a.v.x,a.v.y)}));
+  const rects=placeLabels(items,[o,t],segs,W,H);
+  items.forEach((it,i)=>{
+    const r=rects[i];
+    if(r.dist>=20){const cx=Math.max(r.x,Math.min(it.x,r.x+r.w)),cy=Math.max(r.y,Math.min(it.y,r.y+r.h));g+='<line x1="'+it.x.toFixed(1)+'" y1="'+it.y.toFixed(1)+'" x2="'+cx.toFixed(1)+'" y2="'+cy.toFixed(1)+'" stroke="'+it.c+'" stroke-width="1" stroke-opacity=".75"/>'}
+    g+='<rect x="'+r.x.toFixed(1)+'" y="'+r.y.toFixed(1)+'" width="'+r.w.toFixed(1)+'" height="'+r.h+'" rx="3" fill="'+BG+'" fill-opacity=".82" stroke="'+it.c+'" stroke-opacity=".55"/>';
+    g+='<text x="'+(r.x+6).toFixed(1)+'" y="'+(r.y+14).toFixed(1)+'" fill="'+it.c+'" font-size="13" font-weight="700" letter-spacing=".3">'+esc(it.lines[0])+'</text>';
+    g+='<text x="'+(r.x+6).toFixed(1)+'" y="'+(r.y+29).toFixed(1)+'" fill="#E6ECF0" font-size="13" font-weight="600">'+esc(it.lines[1])+'</text>';
+  });
+  if(reveal){
+    let bf=0.5,bp=1e9;
+    for(const f of[0.5,0.38,0.62,0.28,0.72]){
+      const mx=o.x+(t.x-o.x)*f,my=o.y+(t.y-o.y)*f;let p=0;
+      for(const r of rects)if(mx>r.x-24&&mx<r.x+r.w+24&&my>r.y-14&&my<r.y+r.h+16)p+=10;
+      if(p<bp){bp=p;bf=f}
+    }
+    const mx=o.x+(t.x-o.x)*bf,my=o.y+(t.y-o.y)*bf;
+    g+='<text x="'+mx.toFixed(1)+'" y="'+(my-7).toFixed(1)+'" fill="#FFFFFF" font-size="14" font-weight="700" text-anchor="middle" stroke="'+BG+'" stroke-width="4" paint-order="stroke">'+s.R+' NM</text>';
+  }
+  return g+'</svg>';
+}
+
+// ---------- UI ----------
+if(typeof document!=="undefined"&&document.getElementById("app")){
+const app=document.getElementById("app");
+const st={screen:"start",kinds:new Set(Object.keys(KINDS)),unknown:true,vert:true,clock:false,rings:false,n:10,deck:[],i:0,stage:0,res:[],miss:new Set()};
+const tagsOf=s=>[KINDS[s.kind]].concat(s.unknown?["Unknown traffic"]:[],s.tr.vert?["Climbing / descending"]:[]);
+
+function renderStart(){
+  st.screen="start";
+  const ok=st.kinds.size>0;
+  app.innerHTML='<h1>Traffic information practice</h1>'+
+  '<p class="lede">Two aircraft appear on a radar picture. You are talking to one of them (it has a callsign); the other is the traffic. Give the traffic information in your head or out loud, then check it. Every time: <b>WHAT</b> (the type), <b>WHERE</b> (clock position, range, level) and <b>HOW</b> (what it is doing).</p>'+
+  '<div class="sect">Situations</div>'+
+  '<div class="picker" role="group" aria-label="Situations">'+Object.entries(KINDS).map(([k,v])=>'<button class="chip" aria-pressed="'+st.kinds.has(k)+'" data-k="'+k+'"><span class="sw"></span>'+v+'</button>').join("")+'</div>'+
+  '<div class="opts"><label><input type="checkbox" id="unk" '+(st.unknown?"checked":"")+'> Sometimes the traffic is UNKNOWN (type not shown)</label>'+
+  '<label><input type="checkbox" id="vert" '+(st.vert?"checked":"")+'> Sometimes the traffic is climbing or descending</label></div>'+
+  '<div class="opts"><label>Number of scenarios <select id="n">'+[5,10,20,30].map(x=>'<option value="'+x+'"'+(st.n===x?" selected":"")+'>'+x+'</option>').join("")+'</select></label></div>'+
+  '<button class="primary" id="go" '+(ok?"":"disabled")+'>Start '+st.n+' scenarios</button>'+
+  '<p class="legend">Clock positions are relative to the <b>track of the aircraft you are talking to</b> (the line in front of its symbol; 12 o\'clock is straight ahead). The radar is north-up with a 5 NM scale bar and grid, and the levels of both aircraft are always shown. Range within about 1 NM and clock position within one hour is fine. After you press <b>Show answer</b> you mark yourself right or wrong, so be strict with yourself. On a keyboard: <b>Enter</b> shows the answer, <b>Y</b> / <b>N</b> marks it.</p>'+
+  '<details class="ref"><summary>Phraseology used in this quiz</summary>'+
+  '<p>Format: <code>TRAFFIC (clock) (distance) (direction of flight) (other pertinent information)</code>, as in ICAO PANS-ATM and SERA. Here it is split into three blocks, always starting with the callsign of the aircraft you are talking to.</p>'+
+  '<div class="tw"><table><tr><th>Block</th><th>Contents</th></tr>'+
+  '<tr><td class="k"><span class="tag what">WHAT</span></td><td>Aircraft type, or <code>UNKNOWN</code> when the type is not known.</td></tr>'+
+  '<tr><td class="k"><span class="tag where">WHERE</span></td><td>Clock position, range in miles and level: <code>2 O\'CLOCK, 5 MILES, FLIGHT LEVEL 100</code>. Below the transition altitude the level is an altitude: <code>2500 FEET</code>.</td></tr>'+
+  '<tr><td class="k"><span class="tag how">HOW</span></td><td>Behaviour: <code>OPPOSITE DIRECTION</code>, <code>SAME DIRECTION</code>, <code>CLOSING</code>, <code>OVERTAKING</code>, <code>CROSSING LEFT TO RIGHT</code> (or <code>RIGHT TO LEFT</code>), <code>SLOW MOVING</code>, <code>FAST MOVING</code>, <code>CLIMBING</code>, <code>DESCENDING</code>.</td></tr></table></div>'+
+  '<p>WHERE and HOW may be swapped. The answer panel shows both orders.</p>'+
+  '<p>How the quiz decides which term to expect:</p>'+
+  '<div class="tw"><table><tr><th>Term</th><th>Used when</th></tr>'+
+  '<tr><td class="k">OPPOSITE DIRECTION</td><td>Its track is within 30° of the reciprocal of your aircraft\'s track.</td></tr>'+
+  '<tr><td class="k">SAME DIRECTION, CLOSING</td><td>Tracks within 30° of each other, the traffic is ahead and slower, so your aircraft is catching up on it.</td></tr>'+
+  '<tr><td class="k">OVERTAKING</td><td>Tracks within 30° of each other, the traffic is behind and faster. <code>SAME DIRECTION</code> may be added.</td></tr>'+
+  '<tr><td class="k">CROSSING</td><td>Tracks more than 30° apart, moving across your track from one side to the other.</td></tr>'+
+  '<tr><td class="k">SLOW / FAST MOVING</td><td>Ground speed up to '+SLOW_KT+' kt, or '+FAST_KT+' kt and more. Required with UNKNOWN, optional when the type is given.</td></tr>'+
+  '<tr><td class="k">CLIMBING / DESCENDING</td><td>An arrow after the level (↑ ↓) on the traffic label.</td></tr></table></div>'+
+  '<p>The ten types: Embraer 190, Airbus 340, Boeing 777, Cessna 208, Citation 550, ATR 72, F35 Lightning, Super King Air, Diamond 40, Robinson 44.</p></details>';
+  app.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{const k=b.dataset.k;st.kinds.has(k)?st.kinds.delete(k):st.kinds.add(k);renderStart()});
+  app.querySelector("#unk").onchange=e=>st.unknown=e.target.checked;
+  app.querySelector("#vert").onchange=e=>st.vert=e.target.checked;
+  app.querySelector("#n").onchange=e=>{st.n=+e.target.value;renderStart()};
+  app.querySelector("#go").onclick=start;
+}
+
+function start(){
+  const o={kinds:[...st.kinds],unknown:st.unknown?0.22:0,vert:st.vert};
+  st.deck=Array.from({length:st.n},()=>genScenario(o));
+  begin();
+}
+function begin(){st.i=0;st.stage=0;st.res=[];st.miss=new Set();renderQ();window.scrollTo(0,0)}
+
+function radarEl(){return document.getElementById("radar")}
+function drawRadar(){
+  const el=radarEl();if(!el||st.screen!=="q")return;
+  const w=Math.max(280,Math.min(820,Math.round(el.clientWidth||app.clientWidth||600)));
+  const h=w<560?Math.round(w*1.15):Math.round(w*0.64);
+  el.innerHTML=radarSVG(st.deck[st.i],w,h,{clock:st.clock,rings:st.rings},st.stage>=1);
+}
+
+function renderQ(){
+  st.screen="q";
+  const s=st.deck[st.i],tot=st.deck.length,done=st.res.filter(x=>x).length,right=st.res.filter(x=>x&&x.ok).length;
+  app.innerHTML='<div class="top"><span>Scenario '+(st.i+1)+' of '+tot+'</span><span>'+right+' right of '+done+' answered</span></div>'+
+  '<div class="bar"><i style="width:'+(st.i/tot*100)+'%"></i></div>'+
+  '<article class="strip"><div class="bay"></div><div class="body">'+
+  '<div class="meta"><span>Traffic information</span><span>Enter = show answer</span></div>'+
+  '<p class="qtext">You are talking to <span class="cs">'+esc(s.own.disp)+'</span>. Give traffic information about the other aircraft.</p>'+
+  '<p class="hint">Say it in your head or out loud: WHAT, WHERE and HOW. Clock position is relative to '+esc(s.own.disp)+'\'s track.</p>'+
+  '<div class="radar" id="radar"></div>'+
+  '<div class="key"><span><i class="dot" style="background:#7FD6FF"></i>'+esc(s.own.disp)+' (you are talking to)</span><span><i class="dot" style="background:#FFC857"></i>traffic</span><span>↑ climbing · ↓ descending</span>'+
+  '<label><input type="checkbox" id="aClock" '+(st.clock?"checked":"")+'> Clock face</label><label><input type="checkbox" id="aRings" '+(st.rings?"checked":"")+'> Range rings (2 NM)</label></div>'+
+  '<div id="fb"></div></div></article>'+
+  '<div class="actions"><button class="ghost" id="quit">End and see results</button><button class="primary" id="act">Show answer</button></div>';
+  drawRadar();
+  app.querySelector("#aClock").onchange=e=>{st.clock=e.target.checked;drawRadar()};
+  app.querySelector("#aRings").onchange=e=>{st.rings=e.target.checked;drawRadar()};
+  app.querySelector("#quit").onclick=renderResults;
+  app.querySelector("#act").onclick=()=>{if(st.stage===0)reveal();else if(st.stage===2)next()};
+}
+
+function reveal(){
+  const s=st.deck[st.i],a=answer(s);st.stage=1;
+  const chips=(c,l)=>'<span class="tag '+c+'">'+l+'</span>';
+  const how=a.req.length?a.req.map(esc).join(" · "):"–";
+  app.querySelector("#fb").innerHTML='<div class="fb"><strong class="t">Model answer</strong>'+
+    '<p class="phrase">'+phraseHTML(s,a,"AB")+'</p>'+
+    '<div class="tw"><table><tr><td>'+chips("what","WHAT")+'</td><td>'+esc(a.what)+(s.unknown?"":' <span style="color:var(--muted)">('+esc(s.tr.type.id)+')</span>')+'</td></tr>'+
+    '<tr><td>'+chips("where","WHERE")+'</td><td><b>direction</b> '+esc(a.where[0])+' · <b>range</b> '+esc(a.where[1])+' · <b>level</b> '+esc(a.where[2])+'</td></tr>'+
+    '<tr><td>'+chips("how","HOW")+'</td><td>'+how+(a.opt.length?' <span style="color:var(--muted)">· may also say: '+a.opt.map(esc).join(", ")+'</span>':'')+'</td></tr></table></div>'+
+    '<div class="alt">Also fine, WHERE and HOW swapped:<p class="phrase">'+phraseHTML(s,a,"BA")+'</p></div>'+
+    '<p class="small">'+a.why.map(esc).join(" ")+' Closest approach in about '+Math.max(1,Math.round(s.tcpa))+' min if nothing changes.</p>'+
+    '<div class="grade" id="grade"><span class="q">Did you get it right?</span><button class="good" id="yes">✓ Yes</button><button class="badbtn" id="no">✗ Not quite</button></div>'+
+    '<div id="why"></div></div>';
+  app.querySelector("#act").style.display="none";
+  drawRadar();
+  app.querySelector("#yes").onclick=()=>grade(true);
+  app.querySelector("#no").onclick=()=>grade(false);
+  if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();
+}
+function grade(ok){
+  if(st.stage!==1)return;
+  st.res[st.i]={ok,miss:[]};
+  if(ok){next();return}
+  st.stage=2;st.miss=new Set();
+  const g=app.querySelector("#grade");g.innerHTML='<span class="q">Marked as not right.</span>';
+  app.querySelector("#why").innerHTML='<div class="miss-el"><span>What did you get wrong?</span>'+
+    [["what","WHAT"],["where","WHERE"],["how","HOW"]].map(([k,l])=>'<button class="chip" aria-pressed="false" data-m="'+k+'"><span class="sw"></span>'+l+'</button>').join("")+'</div>';
+  app.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{
+    const k=b.dataset.m;st.miss.has(k)?st.miss.delete(k):st.miss.add(k);
+    b.setAttribute("aria-pressed",String(st.miss.has(k)));st.res[st.i].miss=[...st.miss];
+  });
+  const a=app.querySelector("#act");a.style.display="";a.textContent=st.i+1<st.deck.length?"Next scenario":"See results";a.focus();
+}
+function next(){
+  st.i++;st.stage=0;st.miss=new Set();
+  st.i<st.deck.length?renderQ():renderResults();
+  window.scrollTo(0,0);
+}
+
+function renderResults(){
+  st.screen="r";
+  const idx=st.deck.map((s,i)=>i).filter(i=>st.res[i]);
+  const right=idx.filter(i=>st.res[i].ok).length,pct=idx.length?Math.round(right/idx.length*100):0;
+  const m={};
+  idx.forEach(i=>tagsOf(st.deck[i]).forEach(t=>{m[t]=m[t]||[0,0];m[t][1]++;if(st.res[i].ok)m[t][0]++}));
+  const rows=Object.entries(m).map(([t,[r,n]])=>'<tr><td>'+esc(t)+'</td><td class="n">'+r+' / '+n+'</td><td class="n">'+Math.round(r/n*100)+'%</td></tr>').join("");
+  const el={what:0,where:0,how:0};idx.forEach(i=>st.res[i].miss.forEach(k=>el[k]++));
+  const missed=idx.filter(i=>!st.res[i].ok).map(i=>st.deck[i]);
+  const elTxt=missed.length&&(el.what+el.where+el.how)?'<p class="lede">Parts you marked as wrong: <b>WHAT</b> '+el.what+' · <b>WHERE</b> '+el.where+' · <b>HOW</b> '+el.how+'.</p>':'';
+  app.innerHTML='<h1>Results</h1><div class="score">'+pct+'%</div>'+
+    '<p class="lede">'+right+' right out of '+idx.length+' answered'+(idx.length<st.deck.length?' ('+(st.deck.length-idx.length)+' not attempted)':'')+'.</p>'+elTxt+
+    (idx.length?'<h2>By situation</h2><div class="tw"><table><tr><th>Situation</th><th class="n">Right</th><th class="n">Score</th></tr>'+rows+'</table></div>':'')+
+    '<div class="actions" style="justify-content:flex-start">'+(missed.length?'<button class="primary" id="retry">Retry '+missed.length+' missed</button>':'')+'<button class="ghost" id="new">New session</button></div>'+
+    (missed.length?'<h2>Review missed scenarios</h2>'+missed.map(s=>{const a=answer(s);return '<div class="miss"><p class="ref">'+esc(s.own.disp)+' · '+esc(KINDS[s.kind])+(s.unknown?' · unknown':'')+'</p><p class="phrase">'+phraseHTML(s,a,"AB")+'</p></div>'}).join(""):'');
+  const r=app.querySelector("#retry");
+  if(r)r.onclick=()=>{st.deck=missed;begin()};
+  app.querySelector("#new").onclick=renderStart;
+  window.scrollTo(0,0);
+}
+
+document.addEventListener("keydown",e=>{
+  if(st.screen!=="q"||e.ctrlKey||e.metaKey||e.altKey)return;
+  const tg=e.target,k=e.key.toLowerCase(),isCheck=tg.tagName==="INPUT"&&tg.type==="checkbox";
+  if(tg.tagName==="SELECT"||(tg.tagName==="INPUT"&&!isCheck))return;
+  // Y / N mark the answer wherever the focus is (they do nothing natively)
+  if(st.stage===1&&(k==="y"||k==="1")){grade(true);return}
+  if(st.stage===1&&(k==="n"||k==="2")){grade(false);return}
+  // Enter / Space would also click a focused button, link or summary, so leave those alone
+  if(tg.closest&&tg.closest("button,summary,a"))return;
+  if(isCheck&&k===" ")return;   // Space still toggles the focused checkbox
+  if((k==="enter"||k===" ")&&st.stage===0){e.preventDefault();reveal();return}
+  if((k==="enter"||k===" ")&&st.stage===2){e.preventDefault();next()}
+});
+let rz;window.addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(drawRadar,120)});
+
+window.__tq={st,genScenario,answer};
+renderStart();
+}
+</script>
+</body>
+</html>
