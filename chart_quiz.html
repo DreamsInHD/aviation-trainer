@@ -11,7 +11,7 @@
 :root{
   --bg:#E4E9ED; --paper:#FBF8EA; --ink:#1B2631; --muted:#5B6873; --line:#C9D1D7;
   --holder:#2F4A63; --ok:#2C7A4B; --okbg:#E1F1E6; --bad:#B23A2E; --badbg:#F8E3E0; --focus:#1F6FB2;
-  --ENTRY:#B1495E; --POINT:#2F6F9F; --FREQ:#6B5BA8; --MVA:#B07A1E; --VERT:#3E8C8A;
+  --ENTRY:#B1495E; --POINT:#2F6F9F; --FREQ:#6B5BA8; --NAME:#9C4FA0; --MVA:#B07A1E; --VERT:#3E8C8A;
   --m-out:#ECEEE6; --m-tma:#FBFAF4; --m-nav:#232F72; --m-ctr:#F3EBCB; --m-ctrl:#8F82AE; --m-dash:#8F82AE; --m-hl:#E0457B; --m-hlf:rgba(224,69,123,.32);
   --sans:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
   --cond:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
@@ -140,6 +140,7 @@ const CTRS=[[[703, 1007], [815, 969], [937, 1008], [937, 1071], [815, 1108], [70
 const TOPICS={
   ENTRY:{t:"TMA entry/exit points",d:"A point on the TMA boundary is highlighted: type its name."},
   POINT:{t:"All points in the TMA",d:"Any point in the TMA (including entry/exit points and navaids) is highlighted: type its name."},
+  NAME:{t:"Adjacent sector names",d:"A neighbouring sector is highlighted: type its name as shown on the chart (1, 2X, 3, 4 or 5)."},
   FREQ:{t:"Adjacent sector frequencies",d:"A neighbouring sector is highlighted: type its frequency. Also: frequency → sector number."},
   MVA:{t:"Minimum vectoring altitudes",d:"A part of the TMA or one of the small circles is highlighted: type the MVA in feet."},
   VERT:{t:"Vertical limits of the sub-sectors",d:"A part of the TMA is highlighted: type its upper and lower limit."}
@@ -256,6 +257,14 @@ function qFreq(a){
     expl:`Sector <b>${a.id}</b> is on <b>${a.f}</b>.`,
     after:{answerText:a.id+"  "+a.f,answerAt:ADJ_LBL[a.id]}};
 }
+function qAdjName(a){
+  return {topic:"NAME",kind:"adjName",target:"Sector "+a.id,answer:a.id,
+    prompt:"What is the name of the highlighted adjacent sector?",
+    map:{adj:a},fields:[{label:"Sector",ph:"e.g. 1"}],
+    check:v=>normName(v[0]).replace(/^SECTOR/,"")===a.id,
+    expl:`This is sector <b>${a.id}</b> (${a.f}). Going round the TMA: 1 north and west, 5 north-east, 4 south-east, 3 south and centre, 2X west.`,
+    after:{answerText:a.id,answerAt:ADJ_LBL[a.id]}};
+}
 function qFreqRev(a){
   return {topic:"FREQ",kind:"freqRev",target:"Sector "+a.id,answer:a.id,
     prompt:`Which adjacent sector is on <b>${a.f}</b>? Type the sector number.`,
@@ -291,6 +300,7 @@ function buildPools(topics){
   const P={};
   if(topics.has("ENTRY"))P.ENTRY=ENTRY_PTS.map(p=>qPoint(p,"ENTRY"));
   if(topics.has("POINT"))P.POINT=PTS.filter(p=>!(topics.has("ENTRY")&&p.e)).map(p=>qPoint(p,"POINT"));
+  if(topics.has("NAME"))P.NAME=ADJ.map(qAdjName);
   if(topics.has("FREQ"))P.FREQ=ADJ.map(qFreq).concat(ADJ.map(qFreqRev));
   if(topics.has("MVA"))P.MVA=SECT.map(qMva).concat(CIRC.map(qCirc));
   if(topics.has("VERT"))P.VERT=SECT.map(qVert);
@@ -318,7 +328,7 @@ function buildDeck(topics,n){
 if(typeof document!=="undefined"&&document.getElementById("app")){
 const app=document.getElementById("app");
 const st={screen:"start",topics:new Set(["ENTRY"]),n:20,zoom:false,deck:[],i:0,checked:false,res:[],given:[],study:"names"};
-const tcount=k=>({ENTRY:ENTRY_PTS.length,POINT:PTS.length,FREQ:ADJ.length*2,MVA:SECT.length+CIRC.length,VERT:SECT.length})[k];
+const tcount=k=>({ENTRY:ENTRY_PTS.length,POINT:PTS.length,NAME:ADJ.length,FREQ:ADJ.length*2,MVA:SECT.length+CIRC.length,VERT:SECT.length})[k];
 const total=()=>Object.values(buildPools(st.topics)).reduce((s,l)=>s+l.length,0);
 const estimate=()=>{const t=total();return st.n==="all"?t:Math.min(st.n,t)};
 function start(){
